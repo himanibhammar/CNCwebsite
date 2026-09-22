@@ -10,26 +10,11 @@ const useIsomorphicLayoutEffect =
 
 const TITLE = "OUR FLAGSHIP";
 
-/**
- * The doorway into the flagship sequence.
- *
- * The hero ends by collapsing its key light into a horizon line at the bottom
- * of the frame. This section opens from that same line: the seam draws apart,
- * the title rises out of it, and a guide line descends toward the four events
- * that follow. It is a transition rather than a heading, which is why it has a
- * beginning, a middle and an exit instead of just sitting there.
- *
- * Motion is GSAP with ScrollTrigger, matching the hero and the showcase. The
- * project also carries framer-motion for the past events gallery, but mixing
- * the two here would mean two scroll systems fighting over the same page.
- */
 export function OurFlagship() {
   const sectionRef = useRef<HTMLElement>(null);
   const seamRef = useRef<HTMLDivElement>(null);
   const bloomRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const guideRef = useRef<HTMLDivElement>(null);
-  const countRef = useRef<HTMLSpanElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useIsomorphicLayoutEffect(() => {
@@ -50,84 +35,140 @@ export function OurFlagship() {
 
         const section = sectionRef.current;
         const title = titleRef.current;
+
         if (!section || !title) return;
 
-        const glyphs = gsap.utils.toArray<HTMLElement>("[data-of-glyph]", title);
+        const glyphs = gsap.utils.toArray<HTMLElement>(
+          "[data-of-glyph]",
+          title
+        );
+
+        /* ================================================================
+           REDUCED MOTION
+        ================================================================= */
 
         if (reduced) {
-          // Show the finished composition and animate nothing.
-          gsap.set(glyphs, { yPercent: 0, opacity: 1 });
-          gsap.set(title, { filter: "blur(0px)" });
-          gsap.set([seamRef.current, guideRef.current], {
-            scaleX: 1,
-            scaleY: 1,
+          gsap.set(glyphs, {
+            yPercent: 0,
             opacity: 1,
           });
-          gsap.set([bloomRef.current, countRef.current], { opacity: 1 });
+
+          gsap.set(title, {
+            filter: "blur(0px)",
+          });
+
+          gsap.set(seamRef.current, {
+            scaleX: 1,
+            opacity: 1,
+          });
+
+          gsap.set(bloomRef.current, {
+            opacity: 1,
+          });
+
           return;
         }
 
-        /* ---------------------------------------------------------------
-           Entrance. Fires once, as the section clears the fold.
+        /* ================================================================
+           INITIAL STATE
+        ================================================================= */
 
-           The blur lives on the title element rather than on each glyph:
-           twelve simultaneous filter animations is twelve rasterisations a
-           frame, and one on the parent looks the same.
-           ------------------------------------------------------------- */
-        gsap.set(seamRef.current, { scaleX: 0, opacity: 0 });
-        gsap.set(bloomRef.current, { opacity: 0 });
-        gsap.set(title, { filter: "blur(16px)" });
-        gsap.set(glyphs, { yPercent: 115, opacity: 0 });
-        gsap.set(guideRef.current, { scaleY: 0 });
-        gsap.set(countRef.current, { opacity: 0, y: 8 });
+        gsap.set(seamRef.current, {
+          scaleX: 0,
+          opacity: 0,
+        });
+
+        gsap.set(bloomRef.current, {
+          opacity: 0,
+        });
+
+        gsap.set(title, {
+          filter: "blur(16px)",
+        });
+
+        gsap.set(glyphs, {
+          yPercent: 120,
+          opacity: 0,
+        });
+
+        /* ================================================================
+           ENTRANCE ANIMATION
+        ================================================================= */
 
         const reveal = gsap.timeline({
           paused: true,
-          defaults: { ease: "power3.out" },
+          defaults: {
+            ease: "power3.out",
+          },
         });
 
         reveal
-          // the seam opens from the centre
+
+          // Horizon line opens from the centre
           .to(
             seamRef.current,
-            { scaleX: 1, opacity: 1, duration: 1.1, ease: "power3.inOut" },
+            {
+              scaleX: 1,
+              opacity: 1,
+              duration: 1.15,
+              ease: "power3.inOut",
+            },
             0
           )
-          .to(bloomRef.current, { opacity: 1, duration: 1.4 }, 0.1)
-          // the title rises out of it, letter by letter
+
+          // Atmospheric bloom
+          .to(
+            bloomRef.current,
+            {
+              opacity: 1,
+              duration: 1.5,
+              ease: "power2.out",
+            },
+            0.1
+          )
+
+          // Letters rise individually
           .to(
             glyphs,
             {
               yPercent: 0,
               opacity: 1,
-              duration: 1.05,
-              stagger: 0.042,
+              duration: 1.2,
+              stagger: 0.055,
               ease: "expo.out",
             },
             0.32
           )
-          // and resolves from soft to sharp as it settles
-          .to(title, { filter: "blur(0px)", duration: 1.2 }, 0.38)
-          // then the eye is handed downward to the sequence
+
+          // Blur resolves into sharp typography
           .to(
-            guideRef.current,
-            { scaleY: 1, duration: 0.9, ease: "power2.inOut" },
-            0.95
-          )
-          .to(countRef.current, { opacity: 1, y: 0, duration: 0.7 }, 1.25);
+            title,
+            {
+              filter: "blur(0px)",
+              duration: 1.2,
+              ease: "power2.out",
+            },
+            0.4
+          );
+
+        /* ================================================================
+           SCROLL TRIGGER — ENTRANCE
+        ================================================================= */
 
         const entrance = ScrollTrigger.create({
           trigger: section,
           start: "top 72%",
           once: true,
-          onEnter: () => reveal.play(),
+
+          onEnter: () => {
+            reveal.play();
+          },
         });
 
-        /* ---------------------------------------------------------------
-           Exit. The block lifts and defocuses as the showcase pins behind
-           it, so the two sections read as one continuous move rather than
-           a heading followed by a carousel.
-           ------------------------------------------------------------- */
+        /* ================================================================
+           EXIT ANIMATION
+        ================================================================= */
+
         const exit = gsap.timeline({
           scrollTrigger: {
             trigger: section,
@@ -135,13 +176,49 @@ export function OurFlagship() {
             end: "bottom top",
             scrub: 1,
           },
-          defaults: { ease: "none" },
+
+          defaults: {
+            ease: "none",
+          },
         });
 
         exit
-          .to(contentRef.current, { yPercent: -26, opacity: 0, duration: 1 }, 0)
-          .to(seamRef.current, { scaleX: 1.4, opacity: 0, duration: 1 }, 0)
-          .to(bloomRef.current, { opacity: 0, duration: 0.8 }, 0);
+
+          // Move the entire title upward
+          .to(
+            contentRef.current,
+            {
+              yPercent: -26,
+              opacity: 0,
+              duration: 1,
+            },
+            0
+          )
+
+          // Horizon expands
+          .to(
+            seamRef.current,
+            {
+              scaleX: 1.4,
+              opacity: 0,
+              duration: 1,
+            },
+            0
+          )
+
+          // Bloom fades away
+          .to(
+            bloomRef.current,
+            {
+              opacity: 0,
+              duration: 0.8,
+            },
+            0
+          );
+
+        /* ================================================================
+           CLEANUP
+        ================================================================= */
 
         return () => {
           entrance.kill();
@@ -152,80 +229,172 @@ export function OurFlagship() {
       sectionRef
     );
 
-    return () => mm.revert();
+    return () => {
+      mm.revert();
+    };
   }, []);
 
   return (
     <section
       ref={sectionRef}
-      className="relative w-full overflow-hidden bg-[#05070b]"
+      className="
+        relative
+        min-h-screen
+        w-full
+        overflow-hidden
+        bg-[#05070b]
+      "
       aria-label="Our flagship events"
     >
-      <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 md:min-h-[88vh]">
-        {/* The seam the hero's key light collapsed into, reopening. */}
+      {/* ================================================================
+          FULL SCREEN CONTAINER
+      ================================================================= */}
+
+      <div
+        className="
+          relative
+          flex
+          min-h-screen
+          w-full
+          flex-col
+          items-center
+          justify-center
+          px-6
+        "
+      >
+        {/* ================================================================
+            HORIZON / SEAM
+        ================================================================= */}
+
         <div
-          aria-hidden="true"
           ref={seamRef}
-          className="stage-horizon absolute top-0 h-[1px] w-[86%] max-w-5xl origin-center"
-        />
-        <div
           aria-hidden="true"
+          className="
+            stage-horizon
+            absolute
+            top-0
+            h-[1px]
+            w-[86%]
+            max-w-[1400px]
+            origin-center
+          "
+        />
+
+        {/* ================================================================
+            CINEMATIC BLOOM
+        ================================================================= */}
+
+        <div
           ref={bloomRef}
-          className="pointer-events-none absolute left-1/2 top-0 h-[42vh] w-[92%] max-w-5xl -translate-x-1/2"
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            left-1/2
+            top-0
+            h-[55vh]
+            w-full
+            max-w-[1600px]
+            -translate-x-1/2
+          "
           style={{
             background:
               "radial-gradient(60% 100% at 50% 0%, rgba(120,162,226,0.16) 0%, rgba(40,70,120,0.05) 42%, transparent 76%)",
           }}
         />
 
-        <div ref={contentRef} className="relative flex flex-col items-center">
+        {/* ================================================================
+            CONTENT
+        ================================================================= */}
+
+        <div
+          ref={contentRef}
+          className="
+            relative
+            flex
+            w-full
+            flex-col
+            items-center
+            justify-center
+          "
+        >
+          {/* ================================================================
+              TITLE
+          ================================================================= */}
+
           <h2
             ref={titleRef}
-            className="of-title will-change-[filter,transform]"
+            className="
+              of-title
+              w-full
+              text-center
+              text-[clamp(5rem,15vw,16rem)]
+              font-black
+              leading-[0.85]
+              tracking-[-0.04em]
+              will-change-[filter,transform]
+              flex
+              flex-col
+              items-center
+              uppercase
+            "
+            style={{
+              fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
+            }}
           >
+            {/* Accessible text */}
+
             <span className="sr-only">{TITLE}</span>
-            <span aria-hidden="true" className="flex flex-wrap justify-center">
-              {TITLE.split(" ").map((word, wordIndex) => (
-                <span key={word} className="inline-flex whitespace-nowrap">
+
+            {/* Animated visual text */}
+
+            <span
+              aria-hidden="true"
+              className="
+                flex
+                flex-wrap
+                justify-center
+                gap-x-[0.22em]
+              "
+            >
+              {TITLE.split(" ").map((word) => (
+                <span
+                  key={word}
+                  className="
+                    inline-flex
+                    whitespace-nowrap
+                  "
+                >
                   {word.split("").map((character, index) => (
                     <span
-                      // Characters repeat within a word, so the index is the
-                      // only stable identity available here.
                       key={`${word}-${index}`}
-                      className="inline-block overflow-hidden pb-[0.08em]"
+                      className="
+                        inline-block
+                        overflow-hidden
+                        pb-[0.08em]
+                      "
                     >
                       <span
                         data-of-glyph
-                        className="inline-block will-change-transform"
+                        className="
+                          inline-block
+                          will-change-transform
+                        "
+                        style={word === "FLAGSHIP" ? {
+                          WebkitTextStroke: "2px rgba(255,255,255,0.4)",
+                          color: "transparent",
+                        } : {
+                          color: "white"
+                        }}
                       >
                         {character}
                       </span>
                     </span>
                   ))}
-                  {wordIndex === 0 && (
-                    <span className="inline-block w-[0.22em]" />
-                  )}
                 </span>
               ))}
             </span>
           </h2>
-
-          {/* Guide line handing the eye down to the sequence. */}
-          <div
-            aria-hidden="true"
-            ref={guideRef}
-            className="mt-10 h-[11vh] w-[1px] origin-top md:mt-14"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(226,240,255,0.55) 0%, rgba(120,162,226,0.22) 55%, transparent 100%)",
-            }}
-          />
-          <span
-            ref={countRef}
-            className="mt-4 font-mono text-[10px] tabular-nums tracking-[0.34em] text-neutral-500"
-          >
-            {String(FLAGSHIP_SHOWCASE.length).padStart(2, "0")}
-          </span>
         </div>
       </div>
     </section>

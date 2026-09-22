@@ -24,7 +24,6 @@ export function Navbar() {
   const navLinks = [
     { label: "ABOUT", href: "/about" },
     { label: "EVENTS", href: "/#flagship" },
-    { label: "GALLERY", href: "/gallery" },
     { label: "CONTACT", href: "/#footer" },
   ];
 
