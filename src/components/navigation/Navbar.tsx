@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { BRAND } from "@/lib/brand";
-import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -21,12 +21,11 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
-
   const navLinks = [
-    { label: "ABOUT", href: BRAND.routes.about },
-    { label: "EVENTS", href: BRAND.routes.events },
-    { label: "CONTACT", href: BRAND.routes.contact },
+    { label: "ABOUT", href: "/about" },
+    { label: "EVENTS", href: "/#flagship" },
+    { label: "GALLERY", href: "/gallery" },
+    { label: "CONTACT", href: "/#footer" },
   ];
 
   return (
@@ -37,29 +36,38 @@ export function Navbar() {
       >
         <nav
           className={clsx(
-            "pointer-events-auto w-full max-w-4xl flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all duration-500",
+            "pointer-events-auto w-full max-w-4xl flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-500",
             "bg-[#07090e]/75 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.6)]",
             scrolled && "border-white/[0.14] bg-[#07090e]/85 shadow-[0_12px_40px_rgba(0,0,0,0.8)]"
           )}
         >
-          {/* Brand Mark & Identity */}
+          {/* Logo */}
           <Link
-            href={BRAND.routes.home}
-            className="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 rounded-full pr-2"
+            href="/"
+            className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 rounded-full pr-2"
             aria-label={`${BRAND.name} Home`}
           >
-            <BrandLogo variant="nav" priority />
+            <div className="relative w-8 h-8 shrink-0">
+              <Image
+                src="/images/logo.png"
+                alt={BRAND.logo.alt}
+                fill
+                sizes="32px"
+                className="object-contain brightness-0 invert"
+                priority
+              />
+            </div>
             <div className="flex flex-col">
               <span className="font-mono text-xs font-semibold tracking-[0.2em] text-white group-hover:text-blue-400 transition-colors">
                 {BRAND.shortName}
               </span>
               <span className="hidden sm:block text-[9px] font-mono tracking-widest text-neutral-400">
-                CHALLENGES & CHAMPIONSHIPS
+                CHALLENGES &amp; CHAMPIONSHIPS
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-1 sm:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -86,10 +94,10 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Right Action / Mobile Toggle */}
+          {/* Right: Explore + Mobile toggle */}
           <div className="flex items-center gap-3">
             <Link
-              href="/events"
+              href="/#flagship"
               className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1 text-[10px] font-mono tracking-widest text-neutral-300 hover:text-white border border-white/10 hover:border-white/30 rounded-full transition-colors"
             >
               <span>EXPLORE</span>
@@ -126,6 +134,7 @@ export function Navbar() {
                 <div key={link.href} className="border-b border-white/[0.06] pb-4">
                   <Link
                     href={link.href}
+                    onClick={() => setIsOpen(false)}
                     className={clsx(
                       "block font-sans text-3xl font-light tracking-tight transition-colors",
                       isActive ? "text-white" : "text-neutral-400 hover:text-white"
@@ -143,7 +152,7 @@ export function Navbar() {
               {BRAND.tagline}
             </p>
             <p className="font-mono text-[10px] tracking-widest text-neutral-500">
-              CHALLENGES & CHAMPIONSHIPS
+              CHALLENGES &amp; CHAMPIONSHIPS
             </p>
           </div>
         </div>

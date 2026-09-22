@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 export function Footer() {
   return (
     <footer
+      id="footer"
       className="relative w-full bg-[#05070a] border-t border-white/[0.08] text-white pt-20 pb-12 px-6 sm:px-10 lg:px-16 overflow-hidden"
       aria-label="Global Footer"
     >

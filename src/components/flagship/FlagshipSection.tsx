@@ -39,6 +39,7 @@ export function FlagshipSection() {
   const horizonRef = useRef<HTMLDivElement>(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isReady, setIsReady] = useState(false);
   const activeIndexRef = useRef(0);
 
   useIsomorphicLayoutEffect(() => {
@@ -155,6 +156,8 @@ export function FlagshipSection() {
           onEnter: () => timelines[0].play(),
         });
 
+        setIsReady(true);
+
         return () => {
           firstEntrance.kill();
           sequence.kill();
@@ -179,6 +182,7 @@ export function FlagshipSection() {
 
   return (
     <section
+      id="flagship"
       ref={containerRef}
       className="relative w-full bg-[#05070b]"
       style={{ height: `${total * PANEL_SCROLL_VH}vh` }}
@@ -186,7 +190,7 @@ export function FlagshipSection() {
     >
       <div
         ref={stageRef}
-        className="relative h-screen w-full overflow-hidden bg-[#05070b]"
+        className="relative h-[100dvh] w-full overflow-hidden bg-[#05070b]"
       >
         {/* Everything the handoff pushes lives inside this node, because
             ScrollTrigger owns the transform on the pinned stage itself. */}
@@ -231,7 +235,9 @@ export function FlagshipSection() {
             key={event.id}
             className={clsx(
               "absolute inset-0 transition-opacity duration-300",
-              i === activeIndex
+              !isReady
+                ? "opacity-0"
+                : i === activeIndex
                 ? "z-[10] opacity-100"
                 : "pointer-events-none z-[9] opacity-0"
             )}

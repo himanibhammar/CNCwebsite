@@ -306,7 +306,7 @@ export function HeroStage() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full bg-[#05070b] h-[150vh] md:h-[185vh]"
+      className="relative w-full bg-[#05070b] h-[120vh] md:h-[140vh]"
       aria-label={`${BRAND.name}: introduction`}
     >
       <div
@@ -334,7 +334,7 @@ export function HeroStage() {
             className="absolute inset-x-0 top-1/2 z-[20]"
           >
             <h1 className="sr-only">{BRAND.name}</h1>
-            <div aria-hidden="true" className="-translate-y-[50%] px-[3vw]">
+            <div aria-hidden="true" className="-translate-y-[50%] px-[8vw]">
               <span className="hero-line-mask">
                 <span
                   ref={line1Ref}

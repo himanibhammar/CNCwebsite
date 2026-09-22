@@ -1,159 +1,101 @@
-import { BRAND } from "@/lib/brand";
-import { BrandLogo } from "@/components/ui/BrandLogo";
-import { Button } from "@/components/ui/Button";
-import Image from "next/image";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: `About: ${BRAND.name}`,
-  description: BRAND.missionStatement,
-};
+import { BRAND } from "@/lib/brand";
+import { Button } from "@/components/ui/Button";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 export default function AboutPage() {
-  const pillars = [
-    {
-      number: "01",
-      title: "SOFTWARE & SYSTEMS",
-      desc: "Full-scale hackathons, distributed cloud architecture, and embedded systems challenges designed for rapid ideation and deployment.",
-    },
-    {
-      number: "02",
-      title: "MECHATRONICS & DRIFT",
-      desc: "High-octane RC and automotive telemetry trials testing chassis balance, powertrain calibration, and precision track dynamics.",
-    },
-    {
-      number: "03",
-      title: "AUTONOMOUS AERIAL ROBOTICS",
-      desc: "Quadcopter flight decks, obstacle navigation gates, optical flow autonomy, and payload delivery engineering.",
-    },
-    {
-      number: "04",
-      title: "PLANETARY & OPEN DATA",
-      desc: "Global hackathons in partnership with open space and Earth observation datasets addressing scientific exploration frontiers.",
-    },
-  ];
-
   return (
-    <div className="w-full min-h-screen pt-32 pb-28 px-6 sm:px-10 lg:px-16 bg-[#07090e] text-white">
-      <div className="max-w-6xl mx-auto">
-        {/* Header Title Section */}
-        <div className="border-b border-white/[0.08] pb-14 mb-16">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-xs tracking-[0.3em] uppercase text-blue-400">
-              C&C DOSSIER
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            <span className="font-mono text-xs tracking-widest text-neutral-400">
-              ORGANIZATION PROFILE
-            </span>
+    <div className="w-full bg-[#07090e] text-white overflow-hidden pt-24">
+
+      <ContainerScroll
+        titleComponent={
+          <div className="text-center px-4">
+            {/* Label */}
+        
+
+            {/* ABOUT US headline */}
+            <h1
+              className="font-black uppercase text-white leading-[0.88]"
+              style={{
+                fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
+                fontSize: "clamp(5rem, 16vw, 16rem)",
+                letterSpacing: "-0.04em",
+              }}
+            >
+              ABOUT
+              <br />
+              <span
+                style={{
+                  WebkitTextStroke: "2px rgba(255,255,255,0.25)",
+                  color: "transparent",
+                }}
+              >
+                US
+              </span>
+            </h1>
+          </div>
+        }
+      >
+        {/* ── CONTENT INSIDE THE CARD ── */}
+        <div className="h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl bg-[#0a0d16] p-6 sm:p-10 space-y-10 scrollbar-none">
+
+          {/* Decorative top bar */}
+          <div className="flex items-center gap-2 pb-6 border-b border-white/[0.07]">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-white/20" />
+            <span className="w-2 h-2 rounded-full bg-white/10" />
+            
           </div>
 
-          <h1 className="font-sans text-4xl sm:text-6xl lg:text-7xl font-light tracking-tight text-white uppercase leading-[1] mb-6">
-            ENGINEERING THE
-            <br />
-            NEXT CHALLENGE.
-          </h1>
-
-          <p className="font-sans text-base sm:text-xl text-neutral-300 font-light max-w-3xl leading-relaxed">
-            {BRAND.missionStatement}
-          </p>
-        </div>
-
-        {/* Editorial Two-Column Identity Stage */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-24 pb-20 border-b border-white/[0.08]">
-          <div className="lg:col-span-7 space-y-6">
-            <p className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-              {"// PURPOSE & ETHOS"}
-            </p>
-            <h2 className="font-sans text-2xl sm:text-4xl font-light text-white uppercase leading-tight">
-              A Platform Built For Rigorous Technical Competition
+          {/* Journey headline */}
+          <div>
+            <h2
+              className="font-black uppercase text-white leading-[0.9] mb-6"
+              style={{
+                fontFamily: "'Arial Black', Impact, sans-serif",
+                fontSize: "clamp(1.8rem, 4vw, 3.5rem)",
+                letterSpacing: "-0.025em",
+              }}
+            >
+              The Journey from
+              <br />
+              <span
+                style={{
+                  WebkitTextStroke: "1px rgba(255,255,255,0.25)",
+                  color: "transparent",
+                }}
+              >
+                Challenge
+              </span>{" "}
+              to Championship.
             </h2>
-            <p className="font-sans text-sm sm:text-base text-neutral-400 font-light leading-relaxed">
-              Challenges & Championships (C&C) exists to conceptualize, design, and host competitive arenas where theoretical engineering transforms into real-world performance. From 36-hour coding sprints to high-precision RC drifting tracks and aerial obstacle courses, every C&C initiative demands uncompromised craftsmanship.
-            </p>
-            <p className="font-sans text-sm text-neutral-400 font-light leading-relaxed">
-              We reject cosmetic hackathons in favor of deep-tech evaluation, transparent jury standards, and production-grade validation criteria.
-            </p>
-          </div>
 
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="relative p-8 rounded-sm bg-[#0b0e17] border border-white/[0.1] shadow-2xl flex flex-col items-center">
-              <BrandLogo variant="card" priority />
-              <p className="font-mono text-xs text-neutral-300 tracking-[0.25em] mt-4 uppercase">
-                {BRAND.name}
+            <div className="space-y-4">
+              <p className="text-white/50 text-sm leading-relaxed font-light">
+                Challenges &amp; Championships (C&amp;C), a vibrant platform of Aaruush, SRMIST, is the
+                place where the spirit of competition, innovation, and the will to win thrive.
               </p>
-              <p className="font-mono text-[10px] text-neutral-500 tracking-widest mt-1">
-                OFFICIAL DOMAIN EMBLEM
+              <p className="text-white/50 text-sm leading-relaxed font-light">
+                From intense technical challenges to strategy and competition-based events, we offer a
+                platform to put your grey matter to the test, think out-of-the-box, and battle it out
+                amongst the best brains to crown a winner. Our events are designed to provide an arena
+                to showcase skills and intellect, bringing together technology, strategy, innovation,
+                brainstorming, and much more.
+              </p>
+              <p className="text-white/40 text-sm leading-relaxed font-light border-l-2 border-blue-500/40 pl-4 italic">
+                We believe every challenge is a chance to learn, unlearn, and relearn an
+                opportunity to collaborate, co-create, and innovate.
               </p>
             </div>
           </div>
+
+       
+
+          {/* CTAs */}
+  
         </div>
-
-        {/* 4 Pillars Grid */}
-        <div className="mb-24">
-          <div className="flex items-center justify-between mb-10 pb-4 border-b border-white/[0.08]">
-            <h2 className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-              {"// CORE DOMAINS OF EXECUTION"}
-            </h2>
-            <span className="font-mono text-xs text-neutral-500">04 DISCIPLINES</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {pillars.map((pillar) => (
-              <div
-                key={pillar.number}
-                className="p-8 rounded-sm bg-[#090c14] border border-white/[0.06] space-y-4"
-              >
-                <span className="font-mono text-xs font-semibold text-blue-400 tracking-widest">
-                  {pillar.number}
-                </span>
-                <h3 className="font-sans text-2xl font-light text-white uppercase">
-                  {pillar.title}
-                </h3>
-                <p className="font-sans text-sm text-neutral-400 font-light leading-relaxed">
-                  {pillar.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Editorial Visual Vignette */}
-        <div className="relative aspect-[21/9] w-full rounded-sm overflow-hidden border border-white/[0.08] mb-20 bg-[#0c101a]">
-          <Image
-            src="/images/flagships/hacksummit/01.jpg"
-            alt="Hacksummit arena showcase"
-            fill
-            sizes="100vw"
-            className="object-cover opacity-80"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-transparent to-transparent" />
-          <div className="absolute bottom-6 left-6 sm:left-10 font-mono text-xs tracking-widest text-neutral-300 uppercase">
-            C&C ARENA PROTOCOL // ZERO PLACEHOLDERS ON STAGE
-          </div>
-        </div>
-
-        {/* Bottom Navigation CTA */}
-        <div className="p-8 sm:p-12 rounded-sm bg-[#0b0e17] border border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h3 className="font-sans text-2xl font-light text-white uppercase">
-              READY TO COMPETE OR COLLABORATE?
-            </h3>
-            <p className="font-sans text-xs sm:text-sm text-neutral-400 font-light">
-              Connect with the C&C committee for event rules, sponsorships, and technical participation.
-            </p>
-          </div>
-
-          <div className="flex gap-4">
-            <Button href="/events" variant="editorial">
-              VIEW EVENTS
-            </Button>
-            <Button href="/contact" variant="solid">
-              CONTACT US
-            </Button>
-          </div>
-        </div>
-      </div>
+      </ContainerScroll>
     </div>
   );
 }
