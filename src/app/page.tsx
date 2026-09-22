@@ -1,18 +1,22 @@
 import { HeroStage } from "@/components/hero/HeroStage";
+import { OurFlagship } from "@/components/flagship/OurFlagship";
 import { FlagshipSection } from "@/components/flagship/FlagshipSection";
-import { ExploreBridge } from "@/components/events/ExploreBridge";
+import { PhotoGallery } from "@/components/ui/gallery";
 
 export default function HomePage() {
   return (
-    <main className="relative w-full bg-[#07090e] overflow-hidden">
-      {/* 01 / Cinematic Brand Introduction */}
+    <main className="relative w-full overflow-hidden bg-[#07090e]">
+      {/* 01 / Cinematic brand introduction */}
       <HeroStage />
 
-      {/* 02 / Flagship Experience (4 Flagships) */}
+      {/* 02 / Transition into the flagship sequence */}
+      <OurFlagship />
+
+      {/* 03 / The four flagships */}
       <FlagshipSection />
 
-      {/* 03 / Explore All Events Transition */}
-      <ExploreBridge />
+      {/* 04 / Past events */}
+      <PhotoGallery />
     </main>
   );
 }

@@ -50,6 +50,18 @@ export function useFitHeadline(
   useIsomorphicLayoutEffect(() => {
     const REFERENCE_SIZE = 100;
 
+    // Bounded polling, only used while the stage has no width to measure.
+    let retries = 0;
+    let retryTimer = 0;
+    const scheduleRetry = () => {
+      if (retries >= 12 || retryTimer) return;
+      retries += 1;
+      retryTimer = window.setTimeout(() => {
+        retryTimer = 0;
+        fit();
+      }, 120);
+    };
+
     const fit = () => {
       const elements = linesRef.current
         .map((ref) => ref.current)
@@ -63,8 +75,18 @@ export function useFitHeadline(
       const mask = elements[0].parentElement;
       if (!mask) return;
 
+      // A zero measure means the stage has no layout yet: a hidden tab, an
+      // ancestor still collapsed, a pane that has not sized itself. Bailing
+      // silently would leave the headline at its inherited 16px with nothing
+      // to recover it, so ask to be called again shortly. The ResizeObserver
+      // below normally wins this race, but it is delivered through the
+      // rendering pipeline and a document that is not being painted never
+      // gets one.
       const measure = mask.clientWidth;
-      if (!measure) return;
+      if (!measure) {
+        scheduleRetry();
+        return;
+      }
 
       // Natural width of each line at a known size.
       //
@@ -115,6 +137,7 @@ export function useFitHeadline(
 
     return () => {
       cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
       observer.disconnect();
       window.removeEventListener("resize", fit);
     };
