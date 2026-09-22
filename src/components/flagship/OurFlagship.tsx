@@ -3,7 +3,8 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { FLAGSHIP_SHOWCASE } from "./flagship-data";
+import InfiniteGallery from "@/components/ui/3d-gallery-photography";
+import { OUR_FLAGSHIP_GALLERY } from "./our-flagship-gallery";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -16,6 +17,7 @@ export function OurFlagship() {
   const bloomRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   useIsomorphicLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -66,6 +68,10 @@ export function OurFlagship() {
             opacity: 1,
           });
 
+          gsap.set(galleryRef.current, {
+            opacity: 1,
+          });
+
           return;
         }
 
@@ -79,6 +85,10 @@ export function OurFlagship() {
         });
 
         gsap.set(bloomRef.current, {
+          opacity: 0,
+        });
+
+        gsap.set(galleryRef.current, {
           opacity: 0,
         });
 
@@ -103,6 +113,18 @@ export function OurFlagship() {
         });
 
         reveal
+
+          // The depth field surfaces first, so the type rises out of
+          // something rather than onto an empty frame
+          .to(
+            galleryRef.current,
+            {
+              opacity: 1,
+              duration: 2,
+              ease: "power2.out",
+            },
+            0
+          )
 
           // Horizon line opens from the centre
           .to(
@@ -214,6 +236,16 @@ export function OurFlagship() {
               duration: 0.8,
             },
             0
+          )
+
+          // Backdrop recedes with it, handing the frame to the showcase
+          .to(
+            galleryRef.current,
+            {
+              opacity: 0,
+              duration: 0.9,
+            },
+            0
           );
 
         /* ================================================================
@@ -247,12 +279,113 @@ export function OurFlagship() {
       aria-label="Our flagship events"
     >
       {/* ================================================================
+          DEPTH GALLERY BACKDROP
+
+          Runs as a backdrop, not a toy: `interactive={false}` stops it
+          capturing wheel, arrow keys and touch. The component calls
+          preventDefault on wheel, and this section sits between two pinned
+          scroll sequences, so capturing input here would strand the reader
+          and the showcase below would be unreachable.
+
+          pointer-events-none for the same reason, and it also spares R3F
+          raycasting the scene on every pointer move.
+      ================================================================= */}
+
+      <div
+        ref={galleryRef}
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          z-0
+        "
+      >
+        <InfiniteGallery
+          images={OUR_FLAGSHIP_GALLERY}
+          interactive={false}
+          speed={0.55}
+          visibleCount={9}
+          className="h-full w-full"
+          fadeSettings={{
+            fadeIn: { start: 0.04, end: 0.22 },
+            fadeOut: { start: 0.42, end: 0.52 },
+          }}
+          blurSettings={{
+            blurIn: { start: 0.0, end: 0.16 },
+            blurOut: { start: 0.34, end: 0.52 },
+            maxBlur: 9,
+          }}
+        />
+      </div>
+
+      {/* ================================================================
+          SCRIMS
+
+          Three passes, in order: a flat veil to sit the photographs back
+          into the black, a pool of shadow behind the wordmark so the
+          outlined letters never fight a bright frame, and edges that carry
+          the section into the hero above and the showcase below.
+      ================================================================= */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          z-[1]
+          bg-[#05070b]/55
+        "
+      />
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          z-[1]
+        "
+        style={{
+          background:
+            "radial-gradient(58% 42% at 50% 50%, rgba(5,7,11,0.88) 0%, rgba(5,7,11,0.62) 45%, rgba(5,7,11,0) 78%)",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          z-[1]
+        "
+        style={{
+          background:
+            "linear-gradient(to bottom, #05070b 0%, rgba(5,7,11,0) 26%, rgba(5,7,11,0) 74%, #05070b 100%)",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="
+          stage-vignette
+          pointer-events-none
+          absolute
+          inset-0
+          z-[1]
+        "
+      />
+
+      {/* ================================================================
           FULL SCREEN CONTAINER
       ================================================================= */}
 
       <div
         className="
           relative
+          z-[2]
           flex
           min-h-screen
           w-full
