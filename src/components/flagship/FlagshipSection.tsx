@@ -1,519 +1,276 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { clsx } from "clsx";
+import { HeroDebris } from "@/components/hero/HeroDebris";
+import { FLAGSHIP_SHOWCASE } from "./flagship-data";
+import { FlagshipPanel } from "./FlagshipPanel";
+import { buildPanelTimeline, settlePanel } from "./flagship-timeline";
 
-interface FlagshipDef {
-  id: string;
-  num: string;
-  total: string;
-  category: string;
-  titleLines: string[];
-  tagline: string;
-  href: string;
-  year: string;
-  imgMain: string;
-  imgMainAlt: string;
-  imgSecondary: string;
-  imgSecondaryAlt: string;
-  accent: string;
-  clipStart: string;
-  clipEnd: string;
-  imageEntry: "left" | "right";
-}
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-const EVENTS: FlagshipDef[] = [
-  {
-    id: "hacksummit",
-    num: "01",
-    total: "04",
-    category: "INNOVATION / BUILD / COLLABORATE",
-    titleLines: ["HACK", "SUMMIT"],
-    tagline: "36 hours. Zero boundaries. A hackathon where engineers build the future in real time.",
-    href: "/events/hacksummit",
-    year: "2026",
-    imgMain: "/images/flagships/hacksummit/01.jpg",
-    imgMainAlt: "Hack Summit — coding arena",
-    imgSecondary: "/images/flagships/hacksummit/02.jpg",
-    imgSecondaryAlt: "Hack Summit — close focus",
-    accent: "#3b82f6",
-    clipStart: "polygon(40% 0%, 100% 0%, 100% 100%, 10% 100%)",
-    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-    imageEntry: "right",
-  },
-  {
-    id: "nasa-space-apps",
-    num: "02",
-    total: "04",
-    category: "SPACE / SCIENCE / EARTH DATA",
-    titleLines: ["NASA", "SPACE APPS", "CHALLENGE"],
-    tagline: "Open NASA data. Global minds. Solving planetary challenges from orbit to Earth.",
-    href: "/events/nasa-space-apps",
-    year: "2026",
-    imgMain: "/images/flagships/nasa-space-apps/01.jpg",
-    imgMainAlt: "NASA Space Apps — mission control",
-    imgSecondary: "/images/flagships/nasa-space-apps/02.jpg",
-    imgSecondaryAlt: "NASA Space Apps — star map",
-    accent: "#06b6d4",
-    clipStart: "polygon(0% 0%, 60% 0%, 90% 100%, 0% 100%)",
-    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-    imageEntry: "left",
-  },
-  {
-    id: "turbodrift",
-    num: "03",
-    total: "04",
-    category: "AUTOMOTIVE / SPEED / TELEMETRY",
-    titleLines: ["TURBO", "DRIFT"],
-    tagline: "Chassis. Cornering. Smoke. RC drift engineering pushed to its mechanical limit.",
-    href: "/events/turbodrift",
-    year: "2026",
-    imgMain: "/images/flagships/turbodrift/01.jpg",
-    imgMainAlt: "TurboDrif - drift car in action",
-    imgSecondary: "/images/flagships/turbodrift/02.jpg",
-    imgSecondaryAlt: "TurboDrift — spinning wheel close-up",
-    accent: "#f97316",
-    clipStart: "polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%)",
-    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-    imageEntry: "right",
-  },
-  {
-    id: "quadcopter",
-    num: "04",
-    total: "04",
-    category: "AERODYNAMICS / AUTONOMY / PRECISION",
-    titleLines: ["QUAD", "COPTER", "CHAMP"],
-    tagline: "Autonomous flight. Precision gates. Engineering gravity-defying precision at speed.",
-    href: "/events/quadcopter",
-    year: "2026",
-    imgMain: "/images/flagships/quadcopter/01.jpg",
-    imgMainAlt: "Quadcopter Championship — drone arena",
-    imgSecondary: "/images/flagships/quadcopter/02.jpg",
-    imgSecondaryAlt: "Quadcopter — frame assembly",
-    accent: "#a3e635",
-    clipStart: "polygon(0% 0%, 70% 0%, 100% 100%, 0% 100%)",
-    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-    imageEntry: "left",
-  },
-];
+/** Scroll distance allotted to each flagship, in viewport heights. */
+const PANEL_SCROLL_VH = 115;
 
-// Event Nav — dots only, no numbers
-function EventNavigation({ events, activeIdx, visible }: { events: FlagshipDef[]; activeIdx: number; visible: boolean }) {
+/**
+ * FLAGSHIP SHOWCASE
+ *
+ * Four events, one animation language, no navigation.
+ *
+ * The section is pinned and the four panels are stacked in place. Scrolling
+ * advances the sequence; it does not scroll the panels past the camera. That
+ * keeps the composition on the same axis as the hero, so the whole page reads
+ * as one continuous move through a single space rather than a stack of
+ * unrelated sections.
+ *
+ * The handoff from the hero is explicit: the hero's exit collapses its key
+ * light into a horizon line at the bottom of the frame, and this section opens
+ * from that same line, carrying a thinned out version of the hero's far debris
+ * field with it so the space is recognisably the same space.
+ */
+export function FlagshipSection() {
+  const containerRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef<HTMLDivElement>(null);
+  const carryoverRef = useRef<HTMLDivElement>(null);
+  const horizonRef = useRef<HTMLDivElement>(null);
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
+
+  useIsomorphicLayoutEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const mm = gsap.matchMedia();
+
+    mm.add(
+      {
+        motion: "(prefers-reduced-motion: no-preference)",
+        reduced: "(prefers-reduced-motion: reduce)",
+      },
+      (context) => {
+        const { reduced } = context.conditions as {
+          motion: boolean;
+          reduced: boolean;
+        };
+
+        const stage = stageRef.current;
+        const container = containerRef.current;
+        const camera = cameraRef.current;
+        if (!stage || !container || !camera) return;
+
+        const panels = gsap.utils.toArray<HTMLElement>("[data-fs-panel]", stage);
+        if (!panels.length) return;
+
+        if (reduced) {
+          panels.forEach(settlePanel);
+          gsap.set([carryoverRef.current, horizonRef.current], { opacity: 0 });
+          return;
+        }
+
+        /* ---------------------------------------------------------------
+           The shared system: one timeline per panel, all built by the same
+           function, differing only in which corner the lattice enters from.
+           ------------------------------------------------------------- */
+        const timelines = panels.map((panel, i) =>
+          buildPanelTimeline(panel, { entry: FLAGSHIP_SHOWCASE[i].entry })
+        );
+
+        // Everything starts off screen; the first panel plays on entry.
+        timelines.forEach((tl) => tl.progress(0).pause());
+
+        const show = (next: number) => {
+          const previous = activeIndexRef.current;
+          if (next === previous) return;
+
+          // The outgoing panel retreats faster than the incoming one arrives,
+          // so the two never sit on screen at equal weight.
+          timelines[previous].timeScale(1.75).reverse();
+          timelines[next].timeScale(1).play();
+
+          activeIndexRef.current = next;
+          setActiveIndex(next);
+        };
+
+        /* ---------------------------------------------------------------
+           Handoff from the hero. Runs while the section is still below the
+           fold, so the space is already forming as the hero blows out.
+           ------------------------------------------------------------- */
+        gsap.set(camera, { scale: 1.06 });
+
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: container,
+            start: "top bottom",
+            end: "top top",
+            scrub: 1,
+          },
+          defaults: { ease: "none" },
+        })
+          .fromTo(
+            horizonRef.current,
+            { opacity: 1, scaleX: 1 },
+            { opacity: 0, scaleX: 1.6, duration: 1 },
+            0
+          )
+          .to(camera, { scale: 1, duration: 1 }, 0)
+          .fromTo(
+            carryoverRef.current,
+            { opacity: 0.85 },
+            { opacity: 0, duration: 0.85 },
+            0.15
+          );
+
+        /* ---------------------------------------------------------------
+           The sequence itself.
+           ------------------------------------------------------------- */
+        const sequence = ScrollTrigger.create({
+          trigger: container,
+          start: "top top",
+          end: "bottom bottom",
+          pin: stage,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const next = Math.min(
+              Math.floor(self.progress * panels.length),
+              panels.length - 1
+            );
+            show(next);
+          },
+          onEnter: () => timelines[activeIndexRef.current].play(),
+          onEnterBack: () => timelines[activeIndexRef.current].play(),
+        });
+
+        // The first panel composes itself as the section rises into view,
+        // not when it mounts. Playing it at setup would spend the entrance
+        // animation while the section is still a screen and a half below the
+        // fold, and the user would arrive to a composition already at rest.
+        const firstEntrance = ScrollTrigger.create({
+          trigger: container,
+          start: "top 85%",
+          once: true,
+          onEnter: () => timelines[0].play(),
+        });
+
+        return () => {
+          firstEntrance.kill();
+          sequence.kill();
+          timelines.forEach((tl) => tl.kill());
+        };
+      },
+      stageRef
+    );
+
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("load", refresh);
+    const refreshTimer = window.setTimeout(refresh, 900);
+
+    return () => {
+      window.removeEventListener("load", refresh);
+      window.clearTimeout(refreshTimer);
+      mm.revert();
+    };
+  }, []);
+
+  const total = FLAGSHIP_SHOWCASE.length;
+
   return (
-    <nav
-      className="fixed right-8 top-1/2 -translate-y-1/2 z-[60] hidden xl:flex flex-col gap-4 transition-opacity duration-500"
-      style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? "auto" : "none" }}
-      aria-label="Event navigation"
+    <section
+      ref={containerRef}
+      className="relative w-full bg-[#05070b]"
+      style={{ height: `${total * PANEL_SCROLL_VH}vh` }}
+      aria-label="Flagship events"
     >
-      {events.map((e, i) => (
-        <div key={e.id} className="flex items-center gap-2">
+      <div
+        ref={stageRef}
+        className="relative h-screen w-full overflow-hidden bg-[#05070b]"
+      >
+        {/* Everything the handoff pushes lives inside this node, because
+            ScrollTrigger owns the transform on the pinned stage itself. */}
+        <div ref={cameraRef} className="absolute inset-0">
+        {/* ---- continuity with the hero ------------------------------- */}
+        <div
+          ref={horizonRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 z-[5]"
+        >
+          <div className="stage-horizon mx-auto h-[1px] w-[70%]" />
           <div
-            className="rounded-full transition-all duration-500"
+            className="h-[26vh] w-full"
             style={{
-              width: i === activeIdx ? "20px" : "4px",
-              height: "2px",
-              background: i === activeIdx ? e.accent : "rgba(255,255,255,0.2)",
+              background:
+                "linear-gradient(to bottom, rgba(96,140,210,0.18) 0%, transparent 100%)",
             }}
           />
         </div>
-      ))}
-    </nav>
-  );
-}
 
-export function FlagshipSection() {
-  const containerRef   = useRef<HTMLDivElement>(null);
-  const stageRef       = useRef<HTMLDivElement>(null);
-  const introRef       = useRef<HTMLDivElement>(null);
-  const introTitleRef  = useRef<HTMLDivElement>(null);
-  const introSubRef    = useRef<HTMLDivElement>(null);
-  const slideRefs      = useRef<(HTMLDivElement | null)[]>([]);
-  const imgMainRefs    = useRef<(HTMLDivElement | null)[]>([]);
-  const imgSecRefs     = useRef<(HTMLDivElement | null)[]>([]);
-  const titleRefs      = useRef<(HTMLDivElement | null)[]>([]);
-  const [activeIdx, setActiveIdx]   = useState(-1);
-  const [navVisible, setNavVisible] = useState(false);
-
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-
-    const ctx = gsap.context(() => {
-      // Initial states
-      EVENTS.forEach((ev, i) => {
-        gsap.set(slideRefs.current[i],   { opacity: 0, pointerEvents: "none" });
-        gsap.set(imgMainRefs.current[i], { clipPath: ev.clipStart, x: ev.imageEntry === "right" ? 80 : -80 });
-        gsap.set(imgSecRefs.current[i],  { opacity: 0, y: 60 });
-        gsap.set(titleRefs.current[i],   { opacity: 0, x: ev.imageEntry === "right" ? -60 : 60 });
-      });
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 1.2,
-          pin: stageRef.current,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const p = self.progress;
-            if (p < 0.22) {
-              setActiveIdx(-1);
-              setNavVisible(false);
-            } else {
-              setNavVisible(true);
-              const eP = (p - 0.22) / 0.78;
-              setActiveIdx(Math.min(Math.floor(eP * 4), 3));
-            }
-          },
-        },
-      });
-
-      // INTRO hold + exit
-      tl.to({}, { duration: 0.6 })
-        .to(introTitleRef.current, { y: "-120%", opacity: 0, duration: 0.9, ease: "power3.in" }, "+=0.15")
-        .to(introSubRef.current,   { opacity: 0, y: -20,  duration: 0.5, ease: "power2.in" }, "<+=0.1")
-        .to(introRef.current,      { opacity: 0, duration: 0.3, pointerEvents: "none" }, "<+=0.5");
-
-      function enterEvent(i: number, at: string) {
-        const ev = EVENTS[i];
-        const fromLeft = ev.imageEntry === "left";
-        tl.to(slideRefs.current[i],   { opacity: 1, pointerEvents: "auto", duration: 0.01 }, at);
-        tl.fromTo(imgMainRefs.current[i],
-          { clipPath: ev.clipStart, x: fromLeft ? -80 : 80 },
-          { clipPath: ev.clipEnd,   x: 0, duration: 1.1, ease: "power3.out" }, at);
-        tl.to(imgSecRefs.current[i],  { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, `${at}+=0.4`);
-        tl.to(titleRefs.current[i],   { opacity: 1, x: 0, duration: 0.9, ease: "power3.out" }, `${at}+=0.3`);
-        const lines = titleRefs.current[i]?.querySelectorAll(".fs-tline span");
-        if (lines?.length) {
-          tl.fromTo(lines, { y: "110%", opacity: 0 }, { y: "0%", opacity: 1, stagger: 0.1, duration: 0.65, ease: "power3.out" }, `${at}+=0.4`);
-        }
-        const tagEl = titleRefs.current[i]?.querySelector(".fs-tag");
-        if (tagEl) tl.fromTo(tagEl, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, `${at}+=0.7`);
-        const ctaEl = titleRefs.current[i]?.querySelector(".fs-cta");
-        if (ctaEl) tl.fromTo(ctaEl, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, `${at}+=0.85`);
-      }
-
-      function exitEvent(i: number, at: string) {
-        const fromLeft = EVENTS[i].imageEntry === "left";
-        tl.to(imgMainRefs.current[i],  { x: fromLeft ? -110 : 110, opacity: 0.2, duration: 0.8, ease: "power3.in" }, at);
-        tl.to(imgSecRefs.current[i],   { opacity: 0, y: -35, duration: 0.55, ease: "power2.in" }, at);
-        tl.to(titleRefs.current[i],    { opacity: 0, x: fromLeft ? 70 : -70, duration: 0.65, ease: "power3.in" }, at);
-        tl.to(slideRefs.current[i],    { opacity: 0, pointerEvents: "none", duration: 0.2 }, `${at}+=0.8`);
-      }
-
-      enterEvent(0, "+=0.0");
-      tl.to({}, { duration: 0.9 });
-      exitEvent(0, "+=0.1"); enterEvent(1, "<+=0.2");
-      tl.to({}, { duration: 0.9 });
-      exitEvent(1, "+=0.1"); enterEvent(2, "<+=0.2");
-      tl.to({}, { duration: 0.9 });
-      exitEvent(2, "+=0.1"); enterEvent(3, "<+=0.2");
-      tl.to({}, { duration: 0.9 });
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  const GRAIN = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
-
-  return (
-    <>
-      <EventNavigation events={EVENTS} activeIdx={activeIdx} visible={navVisible} />
-
-      <section
-        ref={containerRef}
-        className="relative w-full bg-[#07090e] text-white"
-        style={{ height: "620vh" }}
-        aria-label="Flagship Events Cinematic Experience"
-      >
-        {/* PINNED STAGE */}
         <div
-          ref={stageRef}
-          className="sticky top-0 w-full overflow-hidden"
-          style={{ height: "100svh", background: "#07090e" }}
+          ref={carryoverRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[6]"
         >
-
-          {/* ── INTRO LAYER ── */}
-          <div
-            ref={introRef}
-            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
-            style={{ zIndex: 20 }}
-          >
-            {/* Vertical line above */}
-            <div style={{ width: 1, height: 80, background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.25))", marginBottom: 36 }} />
-
-            <div ref={introTitleRef} className="text-center overflow-hidden">
-              <div
-                className="uppercase font-black leading-[0.88] text-white"
-                style={{
-                  fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
-                  fontSize: "clamp(5rem, 13vw, 15rem)",
-                  letterSpacing: "-0.04em",
-                }}
-              >
-                FLAGSHIP
-              </div>
-              <div
-                className="uppercase font-black leading-[0.88]"
-                style={{
-                  fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
-                  fontSize: "clamp(5rem, 13vw, 15rem)",
-                  letterSpacing: "-0.04em",
-                  WebkitTextStroke: "1.5px rgba(255,255,255,0.22)",
-                  color: "transparent",
-                }}
-              >
-                EVENTS
-              </div>
-            </div>
-
-            
-          </div>
-
-          {/* ── EVENT SLIDES ── */}
-          {EVENTS.map((ev, idx) => {
-            const fromLeft = ev.imageEntry === "left";
-            return (
-              <div
-                key={ev.id}
-                ref={(el) => { slideRefs.current[idx] = el; }}
-                className="absolute inset-0 overflow-hidden"
-                style={{ opacity: 0, pointerEvents: "none", willChange: "opacity" }}
-              >
-                {/* Event tint */}
-                <div className="absolute inset-0 pointer-events-none" aria-hidden
-                  style={{
-                    background: fromLeft
-                      ? `radial-gradient(ellipse 60% 90% at 12% 50%, ${ev.accent}10 0%, transparent 70%)`
-                      : `radial-gradient(ellipse 60% 90% at 88% 50%, ${ev.accent}10 0%, transparent 70%)`,
-                  }}
-                />
-
-                {/* MAIN IMAGE */}
-                <div
-                  ref={(el) => { imgMainRefs.current[idx] = el; }}
-                  className="absolute overflow-hidden"
-                  style={{
-                    top: "6%", height: "86%", width: "60%",
-                    right: fromLeft ? "auto" : "-1%",
-                    left: fromLeft ? "-1%" : "auto",
-                    clipPath: ev.clipStart,
-                    willChange: "clip-path, transform",
-                  }}
-                >
-                  <Image
-                    src={ev.imgMain}
-                    alt={ev.imgMainAlt}
-                    fill priority={idx === 0}
-                    sizes="62vw"
-                    className="object-cover"
-                    style={{ filter: "contrast(1.08) saturate(0.82)", transform: "scale(1.06)", willChange: "transform" }}
-                  />
-                  {/* Inner shadow fades image toward text side */}
-                  <div className="absolute inset-0 pointer-events-none" style={{
-                    background: fromLeft
-                      ? "linear-gradient(to right, transparent 55%, rgba(7,9,14,0.9) 100%)"
-                      : "linear-gradient(to left, transparent 55%, rgba(7,9,14,0.9) 100%)",
-                  }} />
-                  <div className="absolute inset-0 pointer-events-none" style={{
-                    background: "linear-gradient(to top, rgba(7,9,14,0.45) 0%, transparent 45%)",
-                  }} />
-                  {/* Film grain on image */}
-                  <div className="absolute inset-0 pointer-events-none mix-blend-overlay"
-                    style={{ opacity: 0.12, backgroundImage: GRAIN, backgroundSize: "180px 180px" }} />
-                  {/* Caption */}
-                  <div
-                    className="absolute bottom-3 font-mono text-[9px] tracking-[0.28em] text-white/30 uppercase"
-                    style={{ [fromLeft ? "right" : "left"]: 12 }}
-                  >
-                    C&C {ev.year}
-                  </div>
-                </div>
-
-                {/* SECONDARY IMAGE */}
-                <div
-                  ref={(el) => { imgSecRefs.current[idx] = el; }}
-                  className="absolute hidden lg:block overflow-hidden"
-                  style={{
-                    bottom: "7%", width: "21%", aspectRatio: "3/4",
-                    right: fromLeft ? "-2%" : "auto",
-                    left: fromLeft ? "auto" : "-2%",
-                    willChange: "transform, opacity",
-                    boxShadow: "0 20px 56px rgba(0,0,0,0.75)",
-                  }}
-                >
-                  <Image
-                    src={ev.imgSecondary}
-                    alt={ev.imgSecondaryAlt}
-                    fill sizes="22vw"
-                    className="object-cover"
-                    style={{ filter: "contrast(1.1) saturate(0.7)" }}
-                  />
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(to top, rgba(7,9,14,0.55) 0%, transparent 60%)" }} />
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ border: `1px solid ${ev.accent}28` }} />
-                </div>
-
-                {/* TYPOGRAPHY */}
-                <div
-                  ref={(el) => { titleRefs.current[idx] = el; }}
-                  className="absolute"
-                  style={{
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    left: fromLeft ? "auto" : "4%",
-                    right: fromLeft ? "4%" : "auto",
-                    width: "42%",
-                    willChange: "transform, opacity",
-                    zIndex: 10,
-                  }}
-                >
-                  {/* Category label only — no number */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="block h-[1px] w-5" style={{ background: ev.accent }} />
-                    <span className="font-mono text-[10px] tracking-[0.22em] uppercase" style={{ color: `${ev.accent}cc` }}>
-                      {ev.category.split("/")[0].trim()}
-                    </span>
-                  </div>
-
-                  {/* Big title */}
-                  <h2
-                    className="uppercase font-black text-white leading-[0.88]"
-                    style={{
-                      fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
-                      fontSize: "clamp(3.5rem, 7vw, 9rem)",
-                      letterSpacing: "-0.025em",
-                      textShadow: "0 2px 40px rgba(0,0,0,0.85)",
-                    }}
-                  >
-                    {ev.titleLines.map((line, li) => (
-                      <span key={li} className="fs-tline block overflow-hidden">
-                        <span className="block" style={{ paddingLeft: li % 2 === 1 ? "0.1em" : "0" }}>
-                          {line}
-                        </span>
-                      </span>
-                    ))}
-                  </h2>
-
-                  {/* Tagline */}
-                  <p className="fs-tag font-light text-white/45 mt-5 leading-relaxed"
-                    style={{
-                      fontFamily: "var(--font-geist-sans), sans-serif",
-                      fontSize: "clamp(0.72rem, 0.95vw, 0.88rem)",
-                      maxWidth: "33ch",
-                      willChange: "transform, opacity",
-                    }}
-                  >
-                    {ev.tagline}
-                  </p>
-
-                  {/* CTA */}
-                  <div className="fs-cta mt-7" style={{ willChange: "transform, opacity" }}>
-                    <Link
-                      href={ev.href}
-                      className="group inline-flex items-center gap-3 font-mono text-xs tracking-[0.28em] uppercase text-white/70 hover:text-white transition-colors duration-300"
-                    >
-                      <span className="relative">
-                        EXPLORE EVENT
-                        <span className="absolute -bottom-0.5 left-0 h-px w-0 group-hover:w-full transition-all duration-500"
-                          style={{ background: ev.accent }} />
-                      </span>
-                      <span className="transition-transform duration-500 group-hover:translate-x-2"
-                        style={{ color: ev.accent }}>
-                        →
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Thin vertical divider */}
-                <div
-                  className="absolute top-[12%] hidden xl:block pointer-events-none"
-                  style={{
-                    height: "76%", width: 1,
-                    left: fromLeft ? "60%" : "40%",
-                    background: `linear-gradient(to bottom, transparent, ${ev.accent}20 30%, ${ev.accent}20 70%, transparent)`,
-                  }}
-                  aria-hidden
-                />
-              </div>
-            );
-          })}
-
-          {/* Bottom progress indicator */}
-          <div
-            className="absolute bottom-7 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 transition-opacity duration-500"
-            style={{ opacity: navVisible ? 1 : 0 }}
-          >
-            {EVENTS.map((e, i) => (
-              <div
-                key={e.id}
-                style={{
-                  height: 2,
-                  width: i === activeIdx ? 28 : 5,
-                  background: i === activeIdx ? e.accent : i < activeIdx ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.12)",
-                  borderRadius: 99,
-                  transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
-                }}
-              />
-            ))}
-          </div>
+          <HeroDebris plane="far" />
         </div>
 
-        {/* ── MOBILE ── */}
-        <div className="md:hidden px-5 pb-20" style={{ background: "#07090e" }}>
-          <div className="py-16 text-center border-b border-white/[0.06]">
-            <h2 className="uppercase font-black leading-none text-white"
-              style={{ fontFamily: "'Arial Black', Impact, sans-serif", fontSize: "clamp(3.2rem, 18vw, 5.5rem)", letterSpacing: "-0.03em" }}>
-              FLAGSHIP
-            </h2>
-            <h2 className="uppercase font-black leading-none"
-              style={{
-                fontFamily: "'Arial Black', Impact, sans-serif",
-                fontSize: "clamp(3.2rem, 18vw, 5.5rem)",
-                letterSpacing: "-0.03em",
-                WebkitTextStroke: "1px rgba(255,255,255,0.28)",
-                color: "transparent",
-              }}>
-              EVENTS
-            </h2>
-            <p className="font-mono text-[9px] tracking-[0.35em] text-white/28 uppercase mt-4">04 CHAPTERS / 2026</p>
+        {/* ---- ambient grade ------------------------------------------ */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1]"
+          style={{
+            background:
+              "radial-gradient(90% 70% at 22% 42%, rgba(22,32,50,0.85) 0%, rgba(8,11,18,0.94) 48%, #05070b 82%)",
+          }}
+        />
+
+        {/* ---- the four panels ---------------------------------------- */}
+        {FLAGSHIP_SHOWCASE.map((event, i) => (
+          <div
+            key={event.id}
+            className={clsx(
+              "absolute inset-0 transition-opacity duration-300",
+              i === activeIndex
+                ? "z-[10] opacity-100"
+                : "pointer-events-none z-[9] opacity-0"
+            )}
+            aria-hidden={i !== activeIndex}
+            /* Keeps the offscreen panels' controls out of the tab order. */
+            inert={i !== activeIndex}
+          >
+            <FlagshipPanel event={event} position={i} total={total} />
           </div>
-          {EVENTS.map((ev) => (
-            <article key={`m-${ev.id}`} className="py-12 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="block h-[1px] w-5" style={{ background: ev.accent }} />
-                <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: `${ev.accent}cc` }}>
-                  {ev.category.split("/")[0].trim()}
-                </span>
-              </div>
-              <h3 className="uppercase font-black text-white leading-[0.9] mb-5"
-                style={{ fontFamily: "'Arial Black', Impact, sans-serif", fontSize: "clamp(2.8rem, 14vw, 4.5rem)", letterSpacing: "-0.02em" }}>
-                {ev.titleLines.map((l, i) => <span key={i} className="block">{l}</span>)}
-              </h3>
-              <div className="relative w-full overflow-hidden mb-5" style={{ aspectRatio: "16/10", clipPath: ev.clipEnd }}>
-                <Image src={ev.imgMain} alt={ev.imgMainAlt} fill sizes="100vw" className="object-cover"
-                  style={{ filter: "contrast(1.08) saturate(0.82)" }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,9,14,0.5) 0%, transparent 50%)" }} />
-              </div>
-              <p className="text-sm text-white/45 leading-relaxed font-light mb-6">{ev.tagline}</p>
-              <Link href={ev.href}
-                className="group inline-flex items-center gap-3 font-mono text-xs tracking-[0.28em] uppercase text-white/65 hover:text-white transition-colors duration-300">
-                <span className="relative">EXPLORE EVENT
-                  <span className="absolute -bottom-0.5 left-0 h-px w-0 group-hover:w-full transition-all duration-500" style={{ background: ev.accent }} />
-                </span>
-                <span style={{ color: ev.accent }} className="group-hover:translate-x-2 transition-transform duration-500">→</span>
-              </Link>
-            </article>
+        ))}
+
+        {/* ---- sequence rail ------------------------------------------
+            Deliberately not a control: it reports position, the scroll does
+            the moving. Four ticks, the active one extended. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[7vh] left-[7vw] z-[30] flex gap-2 md:bottom-auto md:left-auto md:right-[7vw] md:top-1/2 md:-translate-y-1/2 md:flex-col md:gap-3"
+        >
+          {FLAGSHIP_SHOWCASE.map((event, i) => (
+            <span
+              key={event.id}
+              className={clsx(
+                "block transition-all duration-500 ease-out",
+                "h-[2px] md:h-[1px]",
+                i === activeIndex
+                  ? "w-9 bg-white/80 md:w-8"
+                  : "w-4 bg-white/20 md:w-4"
+              )}
+            />
           ))}
         </div>
-      </section>
-    </>
+
+        {/* ---- lens finish, matched to the hero ----------------------- */}
+        <div
+          aria-hidden="true"
+          className="stage-vignette pointer-events-none absolute inset-0 z-[40]"
+        />
+        </div>
+      </div>
+    </section>
   );
 }

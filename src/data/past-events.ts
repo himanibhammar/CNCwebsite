@@ -9,7 +9,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/robowars.jpg",
     description:
       "Full-contact heavyweight combat robotics tournament held in an enclosed polycarbonate combat arena.",
-    href: "/events/robowars",
     teamSize: "2–4 Engineers",
     status: "Annual",
   },
@@ -21,7 +20,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/ai-odyssey.jpg",
     description:
       "Competitive machine learning sprint centered on real-time computer vision and multimodal edge inference.",
-    href: "/events/ai-odyssey",
     teamSize: "1–3 Developers",
     status: "Completed",
   },
@@ -33,7 +31,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/codeforge.jpg",
     description:
       "Speed-optimized algorithmic design and low-latency systems challenge covering high-throughput data structures.",
-    href: "/events/codeforge",
     teamSize: "Individual / Pairs",
     status: "Completed",
   },
@@ -45,7 +42,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/aerodesign.jpg",
     description:
       "Fixed-wing payload lift and aerodynamic glide efficiency competition with wind-tunnel validation.",
-    href: "/events/aerodesign",
     teamSize: "3–5 Engineers",
     status: "Annual",
   },
@@ -57,7 +53,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/cybershield.jpg",
     description:
       "24-hour offensive and defensive cybersecurity war game featuring reverse engineering and cryptographic puzzles.",
-    href: "/events/cybershield",
     teamSize: "3–4 Analysts",
     status: "Completed",
   },
@@ -69,7 +64,6 @@ export const PAST_EVENTS: PastEvent[] = [
     image: "/images/events/iot-summit.jpg",
     description:
       "Smart-campus sensor mesh and low-power hardware development showcase using LoRaWAN and embedded microcontrollers.",
-    href: "/events/iot-summit",
     teamSize: "2–4 Makers",
     status: "Completed",
   },

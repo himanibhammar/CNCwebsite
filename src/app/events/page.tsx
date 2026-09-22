@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { FLAGSHIP_EVENTS } from "@/data/flagship-events";
 import { PAST_EVENTS } from "@/data/past-events";
-import { Button } from "@/components/ui/Button";
-import { ArrowUpRight } from "lucide-react";
 import { clsx } from "clsx";
 
 export default function EventsArchivePage() {
@@ -68,15 +65,14 @@ export default function EventsArchivePage() {
           <div className="mb-20">
             <div className="flex items-center justify-between mb-8">
               <h2 className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-                // 2026 FLAGSHIP CALENDAR (04)
+                {"// 2026 FLAGSHIP CALENDAR (04)"}
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {FLAGSHIP_EVENTS.map((event) => (
-                <Link
+                <article
                   key={event.id}
-                  href={event.href}
                   className="group relative flex flex-col justify-between p-6 sm:p-8 rounded-sm bg-[#0b0e17] border border-white/[0.08] hover:border-white/[0.25] transition-all duration-500 overflow-hidden"
                 >
                   <div className="space-y-4 mb-8">
@@ -114,11 +110,11 @@ export default function EventsArchivePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/[0.06] font-mono text-xs tracking-widest text-neutral-400 group-hover:text-white transition-colors">
-                    <span>EXPLORE DOSSIER</span>
-                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <div className="flex items-center justify-between pt-4 border-t border-white/[0.06] font-mono text-xs tracking-widest text-neutral-400">
+                    <span>{event.year}</span>
+                    <span className="text-neutral-500">FLAGSHIP EDITION</span>
                   </div>
-                </Link>
+                </article>
               ))}
             </div>
           </div>
@@ -129,15 +125,14 @@ export default function EventsArchivePage() {
           <div>
             <div className="flex items-center justify-between mb-8">
               <h2 className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-                // HISTORICAL ARCHIVE ({PAST_EVENTS.length})
+                {`// HISTORICAL ARCHIVE (${PAST_EVENTS.length})`}
               </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {PAST_EVENTS.map((event) => (
-                <Link
+                <article
                   key={event.id}
-                  href={event.href}
                   className="group flex flex-col justify-between p-5 rounded-sm bg-[#090c14] border border-white/[0.07] hover:border-white/20 transition-all duration-300"
                 >
                   <div className="space-y-3 mb-5">
@@ -169,11 +164,11 @@ export default function EventsArchivePage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] font-mono text-[11px] tracking-widest text-neutral-400 group-hover:text-white transition-colors">
-                    <span>VIEW BRIEF</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] font-mono text-[11px] tracking-widest text-neutral-400">
+                    <span>{event.year}</span>
+                    <span className="text-neutral-500">{event.status}</span>
                   </div>
-                </Link>
+                </article>
               ))}
             </div>
           </div>

@@ -23,7 +23,7 @@ export interface Shard {
   ratio: number;
   /** In-plane rotation, degrees. */
   rotate: number;
-  /** Out-of-plane tilt, degrees — gives each plate real thickness. */
+  /** Out-of-plane tilt, degrees, which gives each plate real thickness. */
   tiltX: number;
   tiltY: number;
   /** Index into SHARD_SHAPES. */
@@ -47,24 +47,6 @@ export const SHARD_SHAPES = [
   "polygon(0% 12%, 86% 0%, 100% 62%, 40% 100%, 6% 70%)",
   "polygon(8% 6%, 96% 0%, 100% 48%, 62% 96%, 0% 64%)",
 ] as const;
-
-/**
- * Per-plane rendering treatment. Depth is expressed purely as defocus, scale
- * and opacity — the same cues a real lens gives you — which keeps the transform
- * pipeline free for animation.
- */
-export const DEPTH_TREATMENT: Record<
-  ShardDepth,
-  { blur: number; opacity: number }
-> = {
-  // Dust-scale debris deep behind the subject — heavily diffused.
-  far: { blur: 4, opacity: 0.32 },
-  // The readable layer: sharp, sits between headline and subject.
-  mid: { blur: 0.4, opacity: 0.82 },
-  // Out-of-focus foreground crossing the lens — sells the depth of field.
-  near: { blur: 11, opacity: 0.5 },
-};
-
 
 export const SHARDS: Shard[] = [
   // ---- far plane -----------------------------------------------------------
@@ -118,3 +100,115 @@ export const PARALLAX_DEPTH = {
   subject: 30,
   hud: 6,
 } as const;
+
+/* ===========================================================================
+   DEPTH
+   The planes are not stacked images: each fragment sits at a real Z offset
+   inside a perspective frustum, so the browser derives its screen size from
+   its distance. Blur, opacity and drift speed are then interpolated from that
+   same distance, which is what keeps every cue agreeing with every other one.
+   ========================================================================= */
+
+/** Camera focal length for the debris frustum, in px. */
+export const PLANE_PERSPECTIVE = 1250;
+
+interface DepthBand {
+  /** Z range in px. Negative recedes from the camera. */
+  z: [number, number];
+  /** Defocus at the near and far end of the band. */
+  blur: [number, number];
+  opacity: [number, number];
+  /** Seconds for one full tumble. Closer fragments tumble faster. */
+  spin: [number, number];
+}
+
+export const DEPTH_BANDS: Record<ShardDepth, DepthBand> = {
+  // Deep background grit: tiny, soft, almost static.
+  far: { z: [-1150, -720], blur: [3, 5.5], opacity: [0.16, 0.34], spin: [58, 96] },
+  // The readable layer that carries the scene's structure.
+  mid: { z: [-430, -110], blur: [0, 1.3], opacity: [0.58, 0.92], spin: [26, 52] },
+  // Foreground fragments crossing the lens, well outside the focal plane.
+  near: { z: [150, 370], blur: [7, 17], opacity: [0.3, 0.6], spin: [11, 24] },
+};
+
+/**
+ * Deterministic 0..1 from a shard id.
+ *
+ * Every fragment needs its own depth, tumble axis and phase, but a real random
+ * source would mean the server and the client disagree and React would rip the
+ * markup out on hydration. Hashing the id gives per-shard variety that is
+ * identical in both places.
+ */
+function hash01(seed: string, salt: number): number {
+  let h = 2166136261 ^ salt;
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  // xorshift finish, then fold to 0..1
+  h ^= h >>> 13;
+  h = Math.imul(h, 0x5bd1e995);
+  h ^= h >>> 15;
+  return ((h >>> 0) % 100000) / 100000;
+}
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+export interface ShardMotion {
+  /** Distance from camera, px. */
+  z: number;
+  /** 0 = far edge of the band, 1 = near edge. */
+  proximity: number;
+  blur: number;
+  opacity: number;
+  /** Continuous tumble, seconds per revolution, per axis. */
+  spinDuration: number;
+  spinX: number;
+  spinY: number;
+  spinZ: number;
+  /** Tumble phase offset so nothing starts in lockstep. */
+  phase: number;
+  /** Fragments this close to the lens get a directional smear. */
+  motionBlur: boolean;
+}
+
+/**
+ * Resolves a shard's placement in the frustum and how it moves through it.
+ *
+ * The three tumble axes are weighted independently, so some fragments spin
+ * almost flat like a thrown plate, some roll end over end, and some do both.
+ * Nothing shares a rotation signature with its neighbour.
+ */
+export function deriveShardMotion(shard: Shard): ShardMotion {
+  const band = DEPTH_BANDS[shard.depth];
+  const t = hash01(shard.id, 1);
+  const z = lerp(band.z[0], band.z[1], t);
+
+  // Proximity runs 0 (far edge) to 1 (near edge) within the band.
+  const proximity = t;
+
+  const axisPick = hash01(shard.id, 2);
+  const spread = hash01(shard.id, 3);
+
+  // Bias each fragment toward one dominant axis so tumbles read as distinct
+  // physical behaviours rather than a uniform wobble.
+  const dominant = axisPick < 0.34 ? "x" : axisPick < 0.67 ? "y" : "z";
+  const strong = lerp(0.75, 1, spread);
+  const weak = lerp(0.05, 0.4, hash01(shard.id, 4));
+  const middling = lerp(0.2, 0.6, hash01(shard.id, 5));
+
+  const direction = hash01(shard.id, 6) < 0.5 ? -1 : 1;
+
+  return {
+    z,
+    proximity,
+    blur: lerp(band.blur[1], band.blur[0], proximity),
+    opacity: lerp(band.opacity[0], band.opacity[1], proximity),
+    spinDuration: lerp(band.spin[1], band.spin[0], proximity),
+    spinX: direction * 360 * (dominant === "x" ? strong : weak),
+    spinY: direction * 360 * (dominant === "y" ? strong : middling),
+    spinZ: -direction * 360 * (dominant === "z" ? strong : weak),
+    phase: hash01(shard.id, 7),
+    motionBlur: shard.depth === "near" && proximity > 0.45,
+  };
+}

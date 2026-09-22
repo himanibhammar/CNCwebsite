@@ -9,7 +9,6 @@ export const FLAGSHIP_EVENTS: FlagshipEvent[] = [
     tagline: "36 hours of rapid software engineering, hardware prototyping, and systems innovation.",
     description:
       "A flagship hackathon uniting developers, designers, and systems architects to conceptualize and deploy production-ready technical solutions.",
-    href: "/events/hacksummit",
     year: "2026",
     highlights: [
       "Full-stack software and distributed system sprints",
@@ -45,7 +44,6 @@ export const FLAGSHIP_EVENTS: FlagshipEvent[] = [
     tagline: "High-octane RC and electric drift telemetry challenges tested on dynamic tracks.",
     description:
       "A competitive automotive engineering and RC drifting championship testing chassis balance, powertrain tuning, and real-time cornering telemetry.",
-    href: "/events/turbodrift",
     year: "2026",
     highlights: [
       "Custom RC drift chassis dynamics & suspension tuning",
@@ -81,7 +79,6 @@ export const FLAGSHIP_EVENTS: FlagshipEvent[] = [
     tagline: "Autonomous drone navigation, precision obstacle courses, and aerial payload delivery.",
     description:
       "An aerial robotics championship challenging participants to construct high-thrust multirotors capable of autonomous waypoint guidance and aerobatic maneuvering.",
-    href: "/events/quadcopter",
     year: "2026",
     highlights: [
       "Autonomous optical flow and obstacle avoidance gates",
@@ -117,7 +114,6 @@ export const FLAGSHIP_EVENTS: FlagshipEvent[] = [
     tagline: "Global hackathon solving real-world space and planetary challenges using open NASA data.",
     description:
       "An international hackathon convening aerospace enthusiasts, data scientists, and engineers to address orbital dynamics, Earth observation, and deep space data sets.",
-    href: "/events/nasa-space-apps",
     year: "2026",
     highlights: [
       "Planetary and Earth science open data access",

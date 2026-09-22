@@ -4,7 +4,6 @@ import { useState } from "react";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/Button";
 import { Mail, MapPin, Share2, Check } from "lucide-react";
-import { clsx } from "clsx";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -103,7 +102,7 @@ export default function ContactPage() {
           {/* Right Column: Clean Editorial Inquiry Form */}
           <div className="lg:col-span-7 bg-[#0b0e17] p-8 sm:p-12 rounded-sm border border-white/[0.08]">
             <h2 className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase mb-8 pb-3 border-b border-white/[0.06]">
-              // DIRECT INQUIRY DISPATCH
+              {"// DIRECT INQUIRY DISPATCH"}
             </h2>
 
             {submitted ? (
@@ -157,10 +156,10 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, event: e.target.value })}
                     className="w-full px-4 py-3 bg-[#07090e] border border-white/10 rounded-sm font-sans text-sm text-white focus:outline-none focus:border-blue-400 transition-colors"
                   >
-                    <option value="HACKSUMMIT">01 — HACKSUMMIT (Hackathon)</option>
-                    <option value="TURBODRIFT">02 — TURBODRIFT (RC & Telemetry)</option>
-                    <option value="QUADCOPTER">03 — QUADCOPTER (Autonomous Flight)</option>
-                    <option value="NASA SPACE APPS CHALLENGE">04 — NASA SPACE APPS CHALLENGE</option>
+                    <option value="HACKSUMMIT">01 / HACKSUMMIT (Hackathon)</option>
+                    <option value="TURBODRIFT">02 / TURBODRIFT (RC & Telemetry)</option>
+                    <option value="QUADCOPTER">03 / QUADCOPTER (Autonomous Flight)</option>
+                    <option value="NASA SPACE APPS CHALLENGE">04 / NASA SPACE APPS CHALLENGE</option>
                     <option value="GENERAL">GENERAL INQUIRY / SPONSORSHIP</option>
                   </select>
                 </div>

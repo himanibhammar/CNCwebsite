@@ -5,8 +5,8 @@ import { forwardRef } from "react";
 /**
  * The lighting rig.
  *
- * Left of the seam is the void — the challenge. Right of it is a blown-out key
- * light — the championship. Everything here is one physical setup: a single
+ * Left of the seam is the void, the challenge. Right of it is a blown-out key
+ * light, the championship. Everything here is one physical setup: a single
  * source behind and to the right of the subject, plus the haze, rays, flare,
  * floor bounce and vignette that source would actually produce.
  *
@@ -26,21 +26,21 @@ export const HeroAtmosphere = forwardRef<HTMLDivElement>(
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 90% at 18% 24%, rgba(24,36,60,0.7) 0%, rgba(8,11,18,0.9) 42%, #05070b 78%)",
+              "radial-gradient(120% 90% at 18% 24%, rgba(16,23,38,0.55) 0%, rgba(6,9,14,0.94) 40%, #05070b 72%)",
           }}
         />
 
         {/* The hard diagonal: void meets light */}
         <div
           data-atmos="seam"
-          className="stage-seam-light absolute inset-0 opacity-90"
+          className="stage-seam-light absolute inset-0 opacity-70"
           style={{ filter: "blur(2px)" }}
         />
 
         {/* Rim along the seam itself */}
         <div
           data-atmos="seam-edge"
-          className="stage-seam-edge absolute top-0 h-full w-[2px] origin-top"
+          className="stage-seam-edge absolute top-0 h-full w-[1px] opacity-60 origin-top"
           style={{
             left: "44%",
             transform: "rotate(-9.5deg) scaleY(1.4)",
@@ -58,7 +58,7 @@ export const HeroAtmosphere = forwardRef<HTMLDivElement>(
         {/* God rays thrown past the subject's silhouette */}
         <div
           data-atmos="rays"
-          className="absolute inset-0 opacity-[0.45] mix-blend-screen"
+          className="absolute inset-0 opacity-[0.22] mix-blend-screen"
           style={{ filter: "blur(14px)" }}
         >
           {[
@@ -84,10 +84,10 @@ export const HeroAtmosphere = forwardRef<HTMLDivElement>(
         {/* Atmospheric haze drifting through the beam */}
         <div
           data-atmos="haze"
-          className="absolute left-[30%] top-[20%] h-[70%] w-[70%] opacity-40"
+          className="absolute left-[30%] top-[20%] h-[70%] w-[70%] opacity-[0.22]"
           style={{
             background:
-              "radial-gradient(45% 55% at 40% 60%, rgba(196,222,255,0.35) 0%, transparent 70%)",
+              "radial-gradient(45% 55% at 40% 60%, rgba(178,200,230,0.22) 0%, transparent 70%)",
             filter: "blur(46px)",
           }}
         />
@@ -95,11 +95,11 @@ export const HeroAtmosphere = forwardRef<HTMLDivElement>(
         {/* Anamorphic streak through the light core */}
         <div
           data-atmos="flare"
-          className="stage-flare absolute left-[14%] h-[2px] w-[84%] mix-blend-screen animate-flicker"
+          className="stage-flare absolute left-[14%] h-[1px] w-[84%] opacity-50 mix-blend-screen animate-flicker"
           style={{ top: "57%", filter: "blur(3px)" }}
         />
         <div
-          className="stage-flare absolute left-[30%] h-[1px] w-[52%] opacity-60 mix-blend-screen"
+          className="stage-flare absolute left-[30%] h-[1px] w-[52%] opacity-30 mix-blend-screen"
           style={{ top: "57%", filter: "blur(8px)" }}
         />
 

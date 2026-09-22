@@ -270,45 +270,6 @@ html.lenis body {
   border-radius: 4px;
 }
 
-/* ---- Keyed brand artwork ----------------------------------------------- */
-
-/* Keys the white JPEG field out to true alpha, then relights the remaining
-   linework as cool etched metal with a volumetric halo. */
-.cc-keyed {
-  filter: url(#cc-luma-key) drop-shadow(0 0 1px rgba(214, 232, 255, 0.85)) drop-shadow(0 0 14px rgba(120, 175, 255, 0.4)) drop-shadow(0 0 46px rgba(58, 116, 226, 0.26)) drop-shadow(0 26px 40px rgba(0, 0, 0, 0.6));
-}
-
-/* A second pass of the same artwork, masked by a travelling highlight band, so
-   a specular sweep crawls across the linework like light across machined steel. */
-.cc-specular {
-  filter: url(#cc-luma-key) brightness(2.6) saturate(0.4);
-  mix-blend-mode: plus-lighter;
-  -webkit-mask-image: linear-gradient(104deg, transparent 38%, #000 49%, transparent 61%);
-  mask-image: linear-gradient(104deg, transparent 38%, #000 49%, transparent 61%);
-  -webkit-mask-size: 280% 100%;
-  mask-size: 280% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  animation: cc-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes cc-sweep {
-  0% {
-    -webkit-mask-position: 170% 0;
-    mask-position: 170% 0;
-  }
-
-  42% {
-    -webkit-mask-position: -80% 0;
-    mask-position: -80% 0;
-  }
-
-  100% {
-    -webkit-mask-position: -80% 0;
-    mask-position: -80% 0;
-  }
-}
-
 /* ---- Volumetric key light ----------------------------------------------- */
 
 .stage-keylight {
@@ -511,5 +472,106 @@ html.lenis body {
 
   .cc-specular {
     display: none;
+  }
+}
+/* ============================================================================
+   FLAGSHIP SHOWCASE
+   ========================================================================== */
+
+.fs-title {
+  font-family: var(--font-display), "Arial Narrow", "Haettenschweiler", sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.82;
+  letter-spacing: -0.012em;
+  font-size: clamp(2.9rem, 12vw, 7.4rem);
+  background-image: linear-gradient(
+    172deg,
+    #ffffff 0%,
+    #e6ecf6 38%,
+    #9fadc2 78%,
+    #6d7a8d 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* Reads as lettering cut into the same space as the imagery, not type
+     floating above it. */
+  filter: drop-shadow(0 0.035em 0.05em rgba(0, 0, 0, 0.85))
+          drop-shadow(0 0.12em 0.3em rgba(0, 0, 0, 0.5));
+}
+
+@media (min-width: 768px) {
+  .fs-title {
+    font-size: clamp(3.6rem, 8.2vw, 11rem);
+  }
+}
+
+.fs-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(226, 232, 240, 0.8);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+.fs-control:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.fs-control:focus-visible {
+  outline: 2px solid rgba(159, 210, 255, 0.75);
+  outline-offset: 3px;
+}
+
+/* The lattice dissolves on its inboard edge with a mask rather than a black
+   overlay, so the ambient grade behind it stays continuous and no vertical
+   seam appears down the middle of the frame. */
+.fs-lattice-mask {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.55) 14%,
+    #000 34%,
+    #000 66%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.55) 14%,
+    #000 34%,
+    #000 66%,
+    transparent 100%
+  );
+}
+
+@media (min-width: 768px) {
+  .fs-lattice-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.28) 13%,
+      #000 40%,
+      #000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.28) 13%,
+      #000 40%,
+      #000 100%
+    );
   }
 }

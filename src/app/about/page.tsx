@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: `About — ${BRAND.name}`,
+  title: `About: ${BRAND.name}`,
   description: BRAND.missionStatement,
 };
 
@@ -63,7 +63,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-24 pb-20 border-b border-white/[0.08]">
           <div className="lg:col-span-7 space-y-6">
             <p className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-              // PURPOSE & ETHOS
+              {"// PURPOSE & ETHOS"}
             </p>
             <h2 className="font-sans text-2xl sm:text-4xl font-light text-white uppercase leading-tight">
               A Platform Built For Rigorous Technical Competition
@@ -93,7 +93,7 @@ export default function AboutPage() {
         <div className="mb-24">
           <div className="flex items-center justify-between mb-10 pb-4 border-b border-white/[0.08]">
             <h2 className="font-mono text-xs tracking-[0.25em] text-neutral-400 uppercase">
-              // CORE DOMAINS OF EXECUTION
+              {"// CORE DOMAINS OF EXECUTION"}
             </h2>
             <span className="font-mono text-xs text-neutral-500">04 DISCIPLINES</span>
           </div>

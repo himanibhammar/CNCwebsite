@@ -37,7 +37,7 @@ export function Footer() {
                 {BRAND.name}
               </p>
               <p className="font-mono text-xs text-neutral-400 tracking-wider">
-                {BRAND.shortName} // OFFICIAL
+                {BRAND.shortName}{" // OFFICIAL"}
               </p>
             </div>
             <p className="font-sans text-xs text-neutral-400 leading-relaxed font-light">

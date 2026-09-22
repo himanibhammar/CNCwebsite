@@ -26,7 +26,6 @@ export interface FlagshipEvent {
   tagline: string;
   description: string;
   images: FlagshipImage[];
-  href: string;
   year?: string;
   highlights?: string[];
   schedule?: { phase: string; time: string }[];
@@ -39,7 +38,6 @@ export interface PastEvent {
   category: string;
   image: string;
   description: string;
-  href: string;
   teamSize?: string;
   status: "Completed" | "Annual" | "Upcoming";
 }

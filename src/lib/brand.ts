@@ -14,8 +14,8 @@ export const BRAND = {
   logo: {
     src: "/images/logo.png",
     alt: "Challenges & Championships Official Brand Mark",
-    width: 1120,
-    height: 1120,
+    width: 1312,
+    height: 1199,
     isLightBackground: true, // PNG on white background; HeroStage uses direct path for advanced filter effects
   },
   routes: {

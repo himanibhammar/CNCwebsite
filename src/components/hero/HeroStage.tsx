@@ -8,33 +8,43 @@ import { ArrowRight } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import { HeroAtmosphere } from "./HeroAtmosphere";
 import { HeroDebris } from "./HeroDebris";
-import { HeroHud } from "./HeroHud";
 import { PARALLAX_DEPTH } from "./hero-config";
+import { useFitHeadline } from "./useFitHeadline";
 
 /** GSAP wants layout effects; SSR wants none. */
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /**
- * HERO — "THE SEAM"
+ * HERO
  *
- * The brand is a duality, so the stage is too: a void on the left (the
- * challenge) meeting a blown-out key light on the right (the championship).
- * Machined debris floats across three focal planes. The monumental headline
- * is clipped behind a mask and rises in on load, then parts like a curtain
- * on scroll.
+ * One image, no supporting copy: CHALLENGES & CHAMPIONSHIPS standing in a
+ * black frustum with machined debris tumbling through it. The brand is a
+ * duality, so the lighting is too, a void on the left meeting a cold key light
+ * on the right, with the ampersand sitting on the seam between them.
+ *
+ * Four motion systems run on the stage, each on its own DOM layer so they
+ * never overwrite one another's transforms:
+ *
+ *   1. entrance      the rig powers up and the headline rises out of its mask
+ *   2. drift + tumble  continuous, per fragment, no two alike
+ *   3. pointer parallax  depth-weighted, interpolated
+ *   4. scroll dolly   the camera pushes through the debris field and hands the
+ *                     frame to the flagship section without a visible seam
  */
 export function HeroStage() {
   const containerRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
   const atmosphereRef = useRef<HTMLDivElement>(null);
-  const eyebrowRef = useRef<HTMLDivElement>(null);
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const ampersandRef = useRef<HTMLSpanElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const hudRef = useRef<HTMLDivElement>(null);
+  const horizonRef = useRef<HTMLDivElement>(null);
+
+  // Measured, not guessed: both lines span the full measure on every viewport.
+  useFitHeadline([line1Ref, line2Ref]);
 
   useIsomorphicLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -54,39 +64,37 @@ export function HeroStage() {
           reduced: boolean;
         };
 
-        const shards = gsap.utils.toArray<HTMLElement>("[data-shard]");
+        const stage = stageRef.current;
+        if (!stage) return;
+
+        const shards = gsap.utils.toArray<HTMLElement>("[data-shard]", stage);
+        const spinners = gsap.utils.toArray<HTMLElement>("[data-spin]", stage);
         const planes = {
-          far: stageRef.current?.querySelector<HTMLElement>('[data-debris-plane="far"]'),
-          mid: stageRef.current?.querySelector<HTMLElement>('[data-debris-plane="mid"]'),
-          near: stageRef.current?.querySelector<HTMLElement>('[data-debris-plane="near"]'),
+          far: stage.querySelector<HTMLElement>('[data-debris-plane="far"]'),
+          mid: stage.querySelector<HTMLElement>('[data-debris-plane="mid"]'),
+          near: stage.querySelector<HTMLElement>('[data-debris-plane="near"]'),
         };
+        const parallaxNode = (name: string) =>
+          stage.querySelector<HTMLElement>(`[data-parallax="${name}"]`);
 
         if (reduced) {
-          gsap.set(
-            [
-              atmosphereRef.current,
-              eyebrowRef.current,
-              ctaRef.current,
-              hudRef.current,
-              ...shards,
-            ],
-            { opacity: 1, clearProps: "transform" }
-          );
+          gsap.set([atmosphereRef.current, ctaRef.current, ...shards], {
+            opacity: 1,
+          });
           gsap.set([line1Ref.current, line2Ref.current], { yPercent: 0 });
+          gsap.set(ampersandRef.current, { opacity: 1, scale: 1, rotate: 0 });
           return;
         }
 
         if (!motion) return;
 
         /* ---------------------------------------------------------------
-           1. Entrance — the rig powers up, headline rises, debris scatters.
+           1. Entrance
            ------------------------------------------------------------- */
         gsap.set(atmosphereRef.current, { opacity: 0, scale: 1.18 });
-        gsap.set(eyebrowRef.current, { opacity: 0, y: 18 });
         gsap.set([line1Ref.current, line2Ref.current], { yPercent: 118 });
         gsap.set(ampersandRef.current, { opacity: 0, scale: 0.45, rotate: -18 });
         gsap.set(ctaRef.current, { opacity: 0, y: 26 });
-        gsap.set(hudRef.current, { opacity: 0 });
         gsap.set(shards, { opacity: 0, scale: 0.35 });
 
         const intro = gsap.timeline({
@@ -113,7 +121,7 @@ export function HeroStage() {
               scale: 1,
               duration: 1.6,
               ease: "power2.out",
-              stagger: { each: 0.045, from: "random" },
+              stagger: { each: 0.035, from: "random" },
             },
             0.72
           )
@@ -128,22 +136,28 @@ export function HeroStage() {
             },
             1.15
           )
-          .to(eyebrowRef.current, { opacity: 1, y: 0, duration: 1.2 }, 1.25)
-          .to(ctaRef.current, { opacity: 1, y: 0, duration: 1.2 }, 1.45)
-          .to(hudRef.current, { opacity: 1, duration: 1.4 }, 1.5);
+          .to(ctaRef.current, { opacity: 1, y: 0, duration: 1.2 }, 1.35);
 
         /* ---------------------------------------------------------------
-           2. Idle drift — nothing in a vacuum sits perfectly still.
+           2. Drift and tumble.
+              Drift lives on [data-shard], tumble on [data-spin]. Separate
+              nodes, so the two never fight over one transform string. Every
+              fragment gets its own period, phase and axis weighting, which is
+              what stops the field looking like a particle preset.
            ------------------------------------------------------------- */
         shards.forEach((shard) => {
           const drift = Number(shard.dataset.drift ?? 10);
           const travel = Number(shard.dataset.travel ?? 30);
           const delay = Number(shard.dataset.delay ?? 0);
+          const proximity = Number(shard.dataset.proximity ?? 0.5);
+
+          // Fragments nearer the lens sweep further and faster: real parallax
+          // between the near and far field, not a uniform bob.
+          const reach = travel * (0.55 + proximity * 1.1);
 
           gsap.to(shard, {
-            y: travel,
-            x: travel * 0.35,
-            rotation: travel * 0.12,
+            y: reach,
+            x: reach * (0.2 + proximity * 0.45),
             duration: drift,
             delay,
             repeat: -1,
@@ -152,17 +166,32 @@ export function HeroStage() {
           });
         });
 
+        spinners.forEach((spinner) => {
+          const duration = Number(spinner.dataset.spinDuration ?? 40);
+          const phase = Number(spinner.dataset.spinPhase ?? 0);
+
+          gsap.to(spinner, {
+            rotationX: `+=${spinner.dataset.spinX ?? 0}`,
+            rotationY: `+=${spinner.dataset.spinY ?? 0}`,
+            rotationZ: `+=${spinner.dataset.spinZ ?? 0}`,
+            duration,
+            delay: -phase * duration,
+            repeat: -1,
+            ease: "none",
+          });
+        });
+
         /* ---------------------------------------------------------------
-           3. Pointer parallax — depth-weighted, interpolated, never snappy.
+           3. Pointer parallax.
+              Targets are dedicated [data-parallax] wrappers that nothing else
+              animates, so quickTo owns those transforms outright.
            ------------------------------------------------------------- */
         const parallax = [
-          { el: atmosphereRef.current, depth: PARALLAX_DEPTH.atmosphere },
-          { el: line1Ref.current?.parentElement ?? null, depth: PARALLAX_DEPTH.headline },
-          { el: line2Ref.current?.parentElement ?? null, depth: PARALLAX_DEPTH.headline * 1.15 },
-          { el: hudRef.current, depth: PARALLAX_DEPTH.hud },
-          { el: planes.far ?? null, depth: 8 },
-          { el: planes.mid ?? null, depth: 24 },
-          { el: planes.near ?? null, depth: 58 },
+          { el: parallaxNode("atmosphere"), depth: PARALLAX_DEPTH.atmosphere },
+          { el: parallaxNode("headline"), depth: PARALLAX_DEPTH.headline },
+          { el: parallaxNode("far"), depth: 7 },
+          { el: parallaxNode("mid"), depth: 26 },
+          { el: parallaxNode("near"), depth: 64 },
         ].filter((layer): layer is { el: HTMLElement; depth: number } =>
           Boolean(layer.el)
         );
@@ -198,42 +227,60 @@ export function HeroStage() {
         };
 
         if (pinned) {
-          window.addEventListener("pointermove", handlePointer, { passive: true });
+          window.addEventListener("pointermove", handlePointer, {
+            passive: true,
+          });
         }
 
         /* ---------------------------------------------------------------
-           4. Scroll — type curtains apart, debris streaks past the lens,
-              key light blows the frame out.
+           4. Scroll dolly.
+              The camera does not cut away, it travels: the near field rushes
+              past the lens, the type parts and falls out of focus behind it,
+              and the key light collapses to a single horizon line at the
+              bottom of the frame. The flagship section opens from exactly
+              that line, so the two read as one continuous move.
            ------------------------------------------------------------- */
         if (pinned) {
-          const exit = gsap.timeline({
+          const dolly = gsap.timeline({
             scrollTrigger: {
               trigger: containerRef.current,
               start: "top top",
               end: "bottom bottom",
               scrub: 1,
-              pin: stageRef.current,
+              pin: stage,
               anticipatePin: 1,
             },
             defaults: { ease: "none" },
           });
 
-          exit
-            .to(eyebrowRef.current, { opacity: 0, y: -50, duration: 0.2 }, 0)
-            .to(ctaRef.current, { opacity: 0, y: 70, duration: 0.25 }, 0)
-            .to(hudRef.current, { opacity: 0, duration: 0.25 }, 0)
-            .to(line1Ref.current, { xPercent: -35, duration: 0.5 }, 0)
-            .to(line2Ref.current, { xPercent: 35, duration: 0.5 }, 0)
+          dolly
+            .to(ctaRef.current, { opacity: 0, y: 60, duration: 0.18 }, 0)
+            // Type parts around the centre, then recedes out of focus
+            .to(line1Ref.current, { xPercent: -34, duration: 0.86 }, 0)
+            .to(line2Ref.current, { xPercent: 34, duration: 0.86 }, 0)
+            .to(
+              parallaxNode("headline"),
+              { scale: 1.22, filter: "blur(14px)", duration: 0.86 },
+              0
+            )
             .to(
               [line1Ref.current, line2Ref.current],
-              { opacity: 0, duration: 0.35 },
-              0.35
+              { opacity: 0, duration: 0.34 },
+              0.62
             )
-            .to(planes.near ?? {}, { scale: 2.1, opacity: 0, duration: 0.8 }, 0.2)
-            .to(planes.mid ?? {}, { scale: 1.45, opacity: 0, duration: 0.8 }, 0.2)
-            .to(planes.far ?? {}, { scale: 1.15, opacity: 0, duration: 0.8 }, 0.2)
-            .to(atmosphereRef.current, { scale: 1.6, duration: 0.8 }, 0.2)
-            .to(atmosphereRef.current, { opacity: 0, duration: 0.4 }, 0.6);
+            // Debris field rushes the lens, nearest plane fastest
+            .to(planes.near ?? {}, { scale: 3.1, opacity: 0, duration: 0.72 }, 0)
+            .to(planes.mid ?? {}, { scale: 1.9, opacity: 0, duration: 0.86 }, 0.06)
+            .to(planes.far ?? {}, { scale: 1.3, opacity: 0, duration: 0.9 }, 0.1)
+            // Key light collapses down into the horizon the next section opens from
+            .to(atmosphereRef.current, { scale: 1.45, duration: 1 }, 0)
+            .to(atmosphereRef.current, { opacity: 0, duration: 0.38 }, 0.68)
+            .fromTo(
+              horizonRef.current,
+              { opacity: 0, scaleX: 0.25 },
+              { opacity: 1, scaleX: 1, duration: 0.38 },
+              0.66
+            );
         }
 
         return () => {
@@ -243,6 +290,8 @@ export function HeroStage() {
       stageRef
     );
 
+    // The pinned measurements are only trustworthy once the display face and
+    // the first paint have settled.
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("load", refresh);
     const refreshTimer = window.setTimeout(refresh, 900);
@@ -257,33 +306,39 @@ export function HeroStage() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-[180vh] md:h-[220vh]"
-      aria-label={`${BRAND.name} — cinematic introduction`}
+      className="relative w-full bg-[#05070b] h-[150vh] md:h-[185vh]"
+      aria-label={`${BRAND.name}: introduction`}
     >
       <div
         ref={stageRef}
-        className="hero-stage relative h-screen w-full overflow-hidden"
+        className="hero-stage relative h-screen w-full overflow-hidden bg-[#05070b]"
       >
         {/* ---- 00 · lighting rig ------------------------------------- */}
-        <HeroAtmosphere ref={atmosphereRef} />
+        <div data-parallax="atmosphere" className="absolute inset-0 z-0">
+          <HeroAtmosphere ref={atmosphereRef} />
+        </div>
 
         <div
           ref={cameraRef}
           className="absolute inset-0"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {/* ---- 01 · far debris ------------------------------------- */}
-          <HeroDebris plane="far" className="z-[10]" />
+          {/* ---- 01 · far field --------------------------------------- */}
+          <div data-parallax="far" className="absolute inset-0 z-[10]">
+            <HeroDebris plane="far" />
+          </div>
 
-          {/* ---- 02 · monumental headline ---------------------------- */}
-          <div className="absolute inset-x-0 top-[26vh] z-[20] md:top-[27vh]">
-            <h1 className="hero-display sr-only">{BRAND.name}</h1>
-            <div aria-hidden="true" className="px-[3vw]">
+          {/* ---- 02 · the headline ------------------------------------ */}
+          <div
+            data-parallax="headline"
+            className="absolute inset-x-0 top-1/2 z-[20]"
+          >
+            <h1 className="sr-only">{BRAND.name}</h1>
+            <div aria-hidden="true" className="-translate-y-[50%] px-[3vw]">
               <span className="hero-line-mask">
                 <span
                   ref={line1Ref}
                   className="hero-display block whitespace-nowrap will-change-transform"
-                  style={{ fontSize: "min(16.6vw, 25vh)" }}
                 >
                   <span className="hero-display-fill">CHALLENGES</span>
                   <span ref={ampersandRef} className="hero-amp">
@@ -296,7 +351,6 @@ export function HeroStage() {
                 <span
                   ref={line2Ref}
                   className="hero-display hero-display-fill block whitespace-nowrap will-change-transform"
-                  style={{ fontSize: "min(14.6vw, 22vh)" }}
                 >
                   CHAMPIONSHIPS
                 </span>
@@ -304,51 +358,46 @@ export function HeroStage() {
             </div>
           </div>
 
-          {/* ---- 03 · mid debris (between type and subject) ---------- */}
-          <HeroDebris plane="mid" className="z-[30]" />
+          {/* ---- 03 · mid field, between type and camera -------------- */}
+          <div data-parallax="mid" className="absolute inset-0 z-[30]">
+            <HeroDebris plane="mid" />
+          </div>
 
-          {/* ---- 04 · near debris (foreground, out of focus) --------- */}
-          <HeroDebris plane="near" className="z-[50]" />
-        </div>
-
-        {/* ---- 05 · eyebrow ------------------------------------------ */}
-        <div
-          ref={eyebrowRef}
-          className="absolute inset-x-0 top-[17vh] z-[60] flex justify-center px-6 md:top-[18vh]"
-        >
-          <div className="flex items-center gap-3 sm:gap-4">
-            <span className="h-[1px] w-6 bg-white/25 sm:w-12" />
-            <p className="font-mono text-[9px] tracking-[0.3em] text-neutral-400 sm:text-[11px] sm:tracking-[0.42em]">
-              {BRAND.tagline}
-            </p>
-            <span className="h-[1px] w-6 bg-white/25 sm:w-12" />
+          {/* ---- 04 · near field, crossing the lens ------------------- */}
+          <div data-parallax="near" className="absolute inset-0 z-[50]">
+            <HeroDebris plane="near" />
           </div>
         </div>
 
-        {/* ---- 06 · calls to action ---------------------------------- */}
+        {/* ---- 05 · the single call to action ------------------------- */}
         <div
           ref={ctaRef}
-          className="absolute inset-x-0 bottom-[6vh] z-[60] flex flex-col items-center gap-5 px-6 sm:flex-row sm:justify-center sm:gap-7"
+          className="absolute inset-x-0 bottom-[9vh] z-[60] flex justify-center px-6"
         >
           <Link href={BRAND.routes.events} className="hero-cta group">
-            <span>EXPLORE CHAMPIONSHIPS</span>
+            <span>EXPLORE</span>
             <ArrowRight
               className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1"
               aria-hidden="true"
             />
           </Link>
-
-          <Link href={BRAND.routes.about} className="hero-cta-ghost group">
-            <span>THE MANIFESTO</span>
-            <span
-              className="block h-[1px] w-5 bg-current transition-all duration-300 group-hover:w-8"
-              aria-hidden="true"
-            />
-          </Link>
         </div>
 
-        {/* ---- 07 · telemetry chrome --------------------------------- */}
-        <HeroHud ref={hudRef} />
+        {/* ---- 06 · the horizon the next section opens from ----------- */}
+        <div
+          ref={horizonRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[55] opacity-0"
+        >
+          <div className="stage-horizon mx-auto h-[1px] w-[70%]" />
+          <div
+            className="mx-auto h-[24vh] w-full"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(96,140,210,0.16) 0%, transparent 100%)",
+            }}
+          />
+        </div>
       </div>
     </section>
   );

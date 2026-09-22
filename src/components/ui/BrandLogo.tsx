@@ -25,27 +25,30 @@ export function BrandLogo({
 }: BrandLogoProps) {
   const isLight = BRAND.logo.isLightBackground;
 
-  // Dimensions per variant
+  // The wrapper owns the box and the image fills it, so the rendered aspect
+  // ratio can never drift from the asset's. Fixing width while CSS constrains
+  // height is what produced Next's aspect-ratio warning.
   const dimensions = {
-    nav: { width: 36, height: 33, wrapper: "w-9 h-8" },
-    card: { width: 64, height: 58, wrapper: "w-16 h-14" },
-    footer: { width: 88, height: 80, wrapper: "w-22 h-20" },
-    hero: { width: 480, height: 438, wrapper: "w-72 sm:w-96 md:w-[440px] aspect-[1312/1199]" },
+    nav: { wrapper: "w-9", sizes: "36px" },
+    card: { wrapper: "w-16", sizes: "64px" },
+    footer: { wrapper: "w-22", sizes: "88px" },
+    hero: { wrapper: "w-72 sm:w-96 md:w-[440px]", sizes: "(max-width: 768px) 18rem, 440px" },
   }[variant];
 
   return (
     <div
       className={clsx(
-        "relative flex items-center justify-center overflow-hidden select-none",
+        "relative flex select-none items-center justify-center overflow-hidden",
         dimensions.wrapper,
         className
       )}
+      style={{ aspectRatio: `${BRAND.logo.width} / ${BRAND.logo.height}` }}
     >
       <Image
         src={BRAND.logo.src}
         alt={BRAND.logo.alt}
-        width={dimensions.width}
-        height={dimensions.height}
+        fill
+        sizes={dimensions.sizes}
         priority={priority}
         className={clsx(
           "object-contain transition-all duration-300",
