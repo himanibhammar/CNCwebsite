@@ -133,6 +133,7 @@ export function FlagshipSection() {
           start: "top top",
           end: "bottom bottom",
           pin: stage,
+          pinSpacing: false,
           anticipatePin: 1,
           onUpdate: (self) => {
             const next = Math.min(
@@ -145,13 +146,13 @@ export function FlagshipSection() {
           onEnterBack: () => timelines[activeIndexRef.current].play(),
         });
 
-        // The first panel composes itself as the section rises into view,
-        // not when it mounts. Playing it at setup would spend the entrance
-        // animation while the section is still a screen and a half below the
-        // fold, and the user would arrive to a composition already at rest.
+        // Fire the first panel entrance only once, when the section top
+        // reaches the top of the viewport. Using "top top" (not "top 85%")
+        // prevents this from double-firing when the OurFlagship pin releases
+        // and the section snaps into view during the scroll-down.
         const firstEntrance = ScrollTrigger.create({
           trigger: container,
-          start: "top 85%",
+          start: "top top",
           once: true,
           onEnter: () => timelines[0].play(),
         });

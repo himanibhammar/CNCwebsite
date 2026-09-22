@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import { clsx } from "clsx";
-import { Plus, Minus } from "lucide-react";
 import type { FlagshipShowcaseEvent } from "./flagship-data";
 
 interface FlagshipPanelProps {
@@ -25,8 +23,6 @@ interface FlagshipPanelProps {
  * four panels, so the four read as one system with four subjects.
  */
 export function FlagshipPanel({ event, position, total }: FlagshipPanelProps) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <article
       data-fs-panel={event.id}
@@ -51,14 +47,13 @@ export function FlagshipPanel({ event, position, total }: FlagshipPanelProps) {
             >
               {event.index}
             </span>
-            <span className="block h-[1px] w-6 bg-white/25" aria-hidden="true" />
-            <span className="font-mono text-[9px] tracking-[0.3em] text-neutral-500 sm:text-[10px]">
-              {event.discipline}
-            </span>
           </div>
 
           {/* title, one masked line at a time */}
-          <h3 className="mb-6 md:mb-8">
+          <h3 
+            className="mb-6 md:mb-8 font-black uppercase tracking-[-0.03em] leading-[0.85] text-[clamp(2.5rem,6vw,5rem)]"
+            style={{ fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif" }}
+          >
             <span className="sr-only">{event.titleLines.join(" ")}</span>
             {event.titleLines.map((line) => (
               <span
@@ -76,66 +71,12 @@ export function FlagshipPanel({ event, position, total }: FlagshipPanelProps) {
             ))}
           </h3>
 
-          {/* hairline that draws out from the title's left edge */}
-          <span
-            data-fs-rule
-            aria-hidden="true"
-            className="mb-6 block h-[1px] w-full max-w-[22rem] origin-left"
-            style={{
-              background: `linear-gradient(to right, ${event.accent}66 0%, rgba(255,255,255,0.08) 70%, transparent 100%)`,
-            }}
-          />
-
           <p
             data-fs-body
             className="max-w-[30rem] font-sans text-[13px] font-light leading-relaxed text-neutral-400 sm:text-[15px]"
           >
             {event.standfirst}
           </p>
-
-          {/* The only control. It reveals detail in place, it never navigates. */}
-          <div data-fs-cta className="mt-7 md:mt-9">
-            <button
-              type="button"
-              onClick={() => setExpanded((open) => !open)}
-              aria-expanded={expanded}
-              aria-controls={`${event.id}-detail`}
-              className="fs-control group"
-            >
-              {expanded ? (
-                <Minus className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : (
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              <span>{expanded ? "LESS" : "DETAIL"}</span>
-            </button>
-
-            <div
-              id={`${event.id}-detail`}
-              className={clsx(
-                "grid transition-[grid-template-rows,opacity] duration-500 ease-out",
-                expanded
-                  ? "mt-6 grid-rows-[1fr] opacity-100"
-                  : "mt-0 grid-rows-[0fr] opacity-0"
-              )}
-            >
-              <ul className="overflow-hidden">
-                {event.detail.map((item) => (
-                  <li
-                    key={item}
-                    className="flex gap-3 border-t border-white/[0.07] py-2.5 font-mono text-[10px] leading-relaxed tracking-[0.12em] text-neutral-500 sm:text-[11px]"
-                  >
-                    <span
-                      className="mt-[0.55em] block h-[3px] w-[3px] shrink-0 rounded-full"
-                      style={{ background: event.accent }}
-                      aria-hidden="true"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -176,7 +117,7 @@ function FlagshipLattice({
 }) {
   // Map the two photographs onto their chosen cells; the rest are void.
   const slotOf = (cell: number) => event.filledCells.indexOf(cell);
-  const cells = Array.from({ length: 4 }, (_, i) => {
+  const cells = Array.from({ length: 9 }, (_, i) => {
     const slot = slotOf(i);
     return slot === -1 ? null : event.tiles[slot] ?? null;
   });
@@ -198,13 +139,13 @@ function FlagshipLattice({
         className="absolute left-1/2 top-1/2 aspect-square w-[150%] -translate-x-1/2 -translate-y-1/2 md:w-[138%] md:translate-x-[-28%] lg:w-[132%] lg:translate-x-[-25%]"
       >
         <div
-          className="grid h-full w-full grid-cols-2 grid-rows-2 gap-[10px] md:gap-[14px]"
+          className="grid h-full w-full grid-cols-3 grid-rows-3 gap-[8px] md:gap-[12px]"
           style={{ transform: "rotate(45deg)" }}
         >
           {cells.map((tile, i) =>
             tile ? (
               <div
-                key={tile.src}
+                key={`${tile.src}-${i}`}
                 data-fs-tile
                 className="relative overflow-hidden will-change-transform"
               >
@@ -220,7 +161,7 @@ function FlagshipLattice({
                     sizes="(max-width: 768px) 90vw, 40vw"
                     priority={position === 0 && slotOf(i) === 0}
                     className="object-cover"
-                    style={{ filter: "grayscale(1) contrast(1.06) brightness(1.12)" }}
+                    style={{ filter: "contrast(1.06) brightness(1.12)" }}
                   />
                 </div>
 

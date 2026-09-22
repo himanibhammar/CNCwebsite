@@ -49,38 +49,38 @@ function optimized(path: string, width = 1200): string {
 }
 
 const SOURCES: GalleryImage[] = [
-	{
-		src: "/images/flagships/hacksummit/01.jpg",
-		alt: "The main build floor at Hack Summit",
-	},
-	{
-		src: "/images/flagships/hacksummit/02.jpg",
-		alt: "Hardware prototyping bench at Hack Summit",
-	},
-	{
-		src: "/images/flagships/nasa-space-apps/01.jpg",
-		alt: "Mission data lab at NASA Space Apps",
-	},
-	{
-		src: "/images/flagships/nasa-space-apps/02.jpg",
-		alt: "Orbit modelling session at NASA Space Apps",
-	},
-	{
-		src: "/images/flagships/turbodrift/01.jpg",
-		alt: "Technical chicane during TurboDrift",
-	},
-	{
-		src: "/images/flagships/turbodrift/02.jpg",
-		alt: "Chassis alignment in the TurboDrift paddock",
-	},
-	{
-		src: "/images/flagships/quadcopter/01.jpg",
-		alt: "Autonomous flight arena at the Quadcopter championship",
-	},
-	{
-		src: "/images/flagships/quadcopter/02.jpg",
-		alt: "Speed gate traversal at the Quadcopter championship",
-	},
+	{ src: "/images/flagships/hacksummit/1.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/2.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/3.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/4.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/5.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/6.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/7.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/hacksummit/8.jpg", alt: "Hack Summit" },
+	{ src: "/images/flagships/nasa-space-apps/9.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/10.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/11.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/12.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/13.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/14.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/15.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/nasa-space-apps/16.jpg", alt: "NASA Space Apps" },
+	{ src: "/images/flagships/turbodrift/17.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/18.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/19.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/20.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/21.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/22.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/23.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/turbodrift/24.jpg", alt: "TurboDrift" },
+	{ src: "/images/flagships/quadcopter/25.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/26.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/27.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/28.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/29.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/30.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/31.jpg", alt: "Quadcopter" },
+	{ src: "/images/flagships/quadcopter/32.jpg", alt: "Quadcopter" },
 ];
 
 export const OUR_FLAGSHIP_GALLERY: GalleryImage[] = SOURCES.map((image) => ({

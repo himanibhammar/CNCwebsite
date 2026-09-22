@@ -1,6 +1,6 @@
 "use client";
 
-import { Ref, forwardRef, useState, useEffect } from "react";
+import { Ref, forwardRef, useState, useEffect, useRef } from "react";
 import Image, { ImageProps } from "next/image";
 import { motion, useMotionValue } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -137,10 +137,29 @@ export const PhotoGallery = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded]   = useState(false);
 
+  const sectionRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    const vt = setTimeout(() => setIsVisible(true), animationDelay * 1000);
-    const at = setTimeout(() => setIsLoaded(true), (animationDelay + 0.4) * 1000);
-    return () => { clearTimeout(vt); clearTimeout(at); };
+    const section = sectionRef.current;
+    if (!section) return;
+
+    // Only start the entry animation when the section actually enters the
+    // viewport. Using a timer was the root cause of Past Events animating
+    // in while the Flagship pin was still active above it.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const vt = setTimeout(() => setIsVisible(true), animationDelay * 1000);
+          const at = setTimeout(() => setIsLoaded(true), (animationDelay + 0.4) * 1000);
+          observer.disconnect();
+          return () => { clearTimeout(vt); clearTimeout(at); };
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
   }, [animationDelay]);
 
   const containerVariants = {
@@ -167,6 +186,7 @@ export const PhotoGallery = ({
 
   return (
     <section
+      ref={sectionRef}
       className="relative w-full bg-[#07090e] py-28 px-5 overflow-hidden"
       aria-label="Past Events Gallery"
     >

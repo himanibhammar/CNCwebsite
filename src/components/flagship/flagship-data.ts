@@ -18,14 +18,10 @@ export interface FlagshipShowcaseEvent {
   id: string;
   /** Two digit index, shown in the rail and the panel meta. */
   index: string;
-  /** Short discipline line. Kept to three words so it never wraps. */
-  discipline: string;
   /** Title broken by hand: the line breaks are a design decision, not a fallback. */
   titleLines: string[];
   /** One sentence. If it needs two, it is too long for this composition. */
   standfirst: string;
-  /** Revealed in place when the panel is expanded. No navigation. */
-  detail: string[];
   /**
    * The photographs that build the lattice. Two per event, which is what
    * actually exists: every `03.jpg` in the repo is still a development
@@ -40,7 +36,7 @@ export interface FlagshipShowcaseEvent {
    * 1 to the top, 2 to the bottom and 3 to the right, so the choice here is a
    * composition decision: it sets where the light sits in the frame.
    */
-  filledCells: [number, number];
+  filledCells: number[];
   /**
    * A restrained cool accent per event. Used for one hairline and one label,
    * never for a glow.
@@ -52,81 +48,81 @@ export const FLAGSHIP_SHOWCASE: FlagshipShowcaseEvent[] = [
   {
     id: "hacksummit",
     index: "01",
-    discipline: "SOFTWARE / SYSTEMS / BUILD",
     titleLines: ["HACK", "SUMMIT"],
     standfirst:
       "Thirty six hours, one room, and whatever you can ship before the clock runs out.",
-    detail: [
-      "Full stack and distributed systems sprints",
-      "Embedded hardware and IoT integration tracks",
-      "Live jury review with working demos only",
-    ],
     tiles: [
-      { src: "/images/flagships/hacksummit/01.jpg", alt: "Hack Summit main build floor" },
-      { src: "/images/flagships/hacksummit/02.jpg", alt: "Hardware prototyping bench at Hack Summit" },
+      { src: "/images/flagships/hacksummit/1.jpg", alt: "Hack Summit photo 1" },
+      { src: "/images/flagships/hacksummit/2.jpg", alt: "Hack Summit photo 2" },
+      { src: "/images/flagships/hacksummit/3.jpg", alt: "Hack Summit photo 3" },
+      { src: "/images/flagships/hacksummit/4.jpg", alt: "Hack Summit photo 4" },
+      { src: "/images/flagships/hacksummit/5.jpg", alt: "Hack Summit photo 5" },
+      { src: "/images/flagships/hacksummit/6.jpg", alt: "Hack Summit photo 6" },
+      { src: "/images/flagships/hacksummit/7.jpg", alt: "Hack Summit photo 7" },
+      { src: "/images/flagships/hacksummit/8.jpg", alt: "Hack Summit photo 8" },
     ],
     entry: "right",
-    filledCells: [1, 2],
+    filledCells: [0, 1, 2, 3, 4, 5, 7, 8],
     accent: "#7fb2ff",
   },
   {
     id: "nasa-space-apps",
     index: "02",
-    discipline: "ORBIT / EARTH DATA / SCIENCE",
     titleLines: ["NASA", "SPACE APPS"],
     standfirst:
       "Open planetary data, a global judging floor, and 48 hours to make sense of it.",
-    detail: [
-      "Planetary and Earth observation data sets",
-      "Satellite telemetry and orbit modelling",
-      "Judged alongside chapters worldwide",
-    ],
     tiles: [
-      { src: "/images/flagships/nasa-space-apps/01.jpg", alt: "Mission data lab at NASA Space Apps" },
-      { src: "/images/flagships/nasa-space-apps/02.jpg", alt: "Orbit modelling session at NASA Space Apps" },
+      { src: "/images/flagships/nasa-space-apps/9.jpg", alt: "NASA photo 1" },
+      { src: "/images/flagships/nasa-space-apps/10.jpg", alt: "NASA photo 2" },
+      { src: "/images/flagships/nasa-space-apps/11.jpg", alt: "NASA photo 3" },
+      { src: "/images/flagships/nasa-space-apps/12.jpg", alt: "NASA photo 4" },
+      { src: "/images/flagships/nasa-space-apps/13.jpg", alt: "NASA photo 5" },
+      { src: "/images/flagships/nasa-space-apps/14.jpg", alt: "NASA photo 6" },
+      { src: "/images/flagships/nasa-space-apps/15.jpg", alt: "NASA photo 7" },
+      { src: "/images/flagships/nasa-space-apps/16.jpg", alt: "NASA photo 8" },
     ],
     entry: "left",
-    filledCells: [1, 3],
+    filledCells: [0, 1, 2, 4, 5, 6, 7, 8],
     accent: "#8fd0e8",
   },
   {
     id: "turbodrift",
     index: "03",
-    discipline: "CHASSIS / SLIP / TELEMETRY",
     titleLines: ["TURBO", "DRIFT"],
     standfirst:
       "Tandem drift battles decided by suspension geometry and how late you lift.",
-    detail: [
-      "Custom RC drift chassis and suspension tuning",
-      "Optical lap tracking with slip angle sensors",
-      "Head to head tandem finals on a technical course",
-    ],
     tiles: [
-      { src: "/images/flagships/turbodrift/01.jpg", alt: "Technical chicane during TurboDrift" },
-      { src: "/images/flagships/turbodrift/02.jpg", alt: "Chassis alignment in the TurboDrift paddock" },
+      { src: "/images/flagships/turbodrift/17.jpg", alt: "TurboDrift photo 1" },
+      { src: "/images/flagships/turbodrift/18.jpg", alt: "TurboDrift photo 2" },
+      { src: "/images/flagships/turbodrift/19.jpg", alt: "TurboDrift photo 3" },
+      { src: "/images/flagships/turbodrift/20.jpg", alt: "TurboDrift photo 4" },
+      { src: "/images/flagships/turbodrift/21.jpg", alt: "TurboDrift photo 5" },
+      { src: "/images/flagships/turbodrift/22.jpg", alt: "TurboDrift photo 6" },
+      { src: "/images/flagships/turbodrift/23.jpg", alt: "TurboDrift photo 7" },
+      { src: "/images/flagships/turbodrift/24.jpg", alt: "TurboDrift photo 8" },
     ],
     entry: "right",
-    filledCells: [2, 3],
+    filledCells: [0, 1, 3, 4, 5, 6, 7, 8],
     accent: "#c9b391",
   },
   {
     id: "quadcopter",
     index: "04",
-    discipline: "THRUST / AUTONOMY / FLIGHT",
     titleLines: ["QUAD", "COPTER"],
     standfirst:
       "Autonomous waypoint guidance, obstacle gates, and a payload that has to land where you said.",
-    detail: [
-      "Optical flow navigation through obstacle gates",
-      "High rate ESC telemetry and motor diagnostics",
-      "Payload drop accuracy scored to the centimetre",
-    ],
     tiles: [
-      { src: "/images/flagships/quadcopter/01.jpg", alt: "Autonomous flight arena at the Quadcopter championship" },
-      { src: "/images/flagships/quadcopter/02.jpg", alt: "Speed gate traversal at the Quadcopter championship" },
+      { src: "/images/flagships/quadcopter/25.jpg", alt: "Quadcopter photo 1" },
+      { src: "/images/flagships/quadcopter/26.jpg", alt: "Quadcopter photo 2" },
+      { src: "/images/flagships/quadcopter/27.jpg", alt: "Quadcopter photo 3" },
+      { src: "/images/flagships/quadcopter/28.jpg", alt: "Quadcopter photo 4" },
+      { src: "/images/flagships/quadcopter/29.jpg", alt: "Quadcopter photo 5" },
+      { src: "/images/flagships/quadcopter/30.jpg", alt: "Quadcopter photo 6" },
+      { src: "/images/flagships/quadcopter/31.jpg", alt: "Quadcopter photo 7" },
+      { src: "/images/flagships/quadcopter/32.jpg", alt: "Quadcopter photo 8" },
     ],
     entry: "left",
-    filledCells: [0, 1],
+    filledCells: [0, 1, 2, 3, 4, 6, 7, 8],
     accent: "#a8bcd6",
   },
 ];

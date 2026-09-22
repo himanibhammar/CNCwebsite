@@ -66,6 +66,12 @@ interface InfiniteGalleryProps {
 	falloff?: { near: number; far: number };
 	visibleCount?: number;
 	/**
+	 * When supplied, the gallery reads scroll velocity from this ref each frame
+	 * instead of relying solely on autoplay. Used by OurFlagship to drive the
+	 * tunnel with GSAP ScrollTrigger progress.
+	 */
+	externalVelocityRef?: React.RefObject<number>;
+	/**
 	 * Capture wheel, arrow keys and touch. Defaults to true.
 	 *
 	 * Set false when the gallery is a backdrop inside a page that scrolls:
@@ -220,6 +226,7 @@ function GalleryScene({
 	speed = 1,
 	visibleCount = 8,
 	interactive = true,
+	externalVelocityRef,
 	fadeSettings = {
 		fadeIn: { start: 0.05, end: 0.15 },
 		fadeOut: { start: 0.85, end: 0.95 },
@@ -321,7 +328,6 @@ function GalleryScene({
 
 	const handleWheel = useCallback(
 		(event: WheelEvent) => {
-			event.preventDefault();
 			nudge(event.deltaY * 0.01 * speed);
 		},
 		[nudge, speed]
@@ -356,7 +362,7 @@ function GalleryScene({
 			lastTouchY = y;
 		};
 
-		canvas.addEventListener("wheel", handleWheel, { passive: false });
+		canvas.addEventListener("wheel", handleWheel, { passive: true });
 		canvas.addEventListener("touchstart", onTouchStart, { passive: true });
 		canvas.addEventListener("touchmove", onTouchMove, { passive: true });
 		document.addEventListener("keydown", handleKeyDown);
@@ -396,6 +402,12 @@ function GalleryScene({
 	}, [interactive]);
 
 	useFrame((state, delta) => {
+		// Pull in any scroll-driven impulse from outside
+		if (externalVelocityRef && externalVelocityRef.current !== 0) {
+			scrollVelocity.current += externalVelocityRef.current;
+			externalVelocityRef.current = 0;
+		}
+
 		if (autoPlay.current) {
 			scrollVelocity.current += 0.3 * delta;
 		}
@@ -575,6 +587,7 @@ export default function InfiniteGallery({
 	speed = 1,
 	visibleCount = 8,
 	interactive = true,
+	externalVelocityRef,
 	className = "h-96 w-full",
 	style,
 	fadeSettings = {
@@ -622,6 +635,7 @@ export default function InfiniteGallery({
 						speed={speed}
 						visibleCount={visibleCount}
 						interactive={interactive}
+						externalVelocityRef={externalVelocityRef}
 						fadeSettings={fadeSettings}
 						blurSettings={blurSettings}
 					/>
