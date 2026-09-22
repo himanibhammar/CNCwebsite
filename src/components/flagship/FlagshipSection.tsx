@@ -1,379 +1,529 @@
-"use client";
+﻿"use client";
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { FLAGSHIP_EVENTS } from "@/data/flagship-events";
-import { Button } from "@/components/ui/Button";
-import { clsx } from "clsx";
+
+interface FlagshipDef {
+  id: string;
+  num: string;
+  total: string;
+  category: string;
+  titleLines: string[];
+  tagline: string;
+  href: string;
+  year: string;
+  imgMain: string;
+  imgMainAlt: string;
+  imgSecondary: string;
+  imgSecondaryAlt: string;
+  accent: string;
+  clipStart: string;
+  clipEnd: string;
+  imageEntry: "left" | "right";
+}
+
+const EVENTS: FlagshipDef[] = [
+  {
+    id: "hacksummit",
+    num: "01",
+    total: "04",
+    category: "INNOVATION / BUILD / COLLABORATE",
+    titleLines: ["HACK", "SUMMIT"],
+    tagline: "36 hours. Zero boundaries. A hackathon where engineers build the future in real time.",
+    href: "/events/hacksummit",
+    year: "2026",
+    imgMain: "/images/flagships/hacksummit/01.jpg",
+    imgMainAlt: "Hack Summit — coding arena",
+    imgSecondary: "/images/flagships/hacksummit/02.jpg",
+    imgSecondaryAlt: "Hack Summit — close focus",
+    accent: "#3b82f6",
+    clipStart: "polygon(40% 0%, 100% 0%, 100% 100%, 10% 100%)",
+    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+    imageEntry: "right",
+  },
+  {
+    id: "nasa-space-apps",
+    num: "02",
+    total: "04",
+    category: "SPACE / SCIENCE / EARTH DATA",
+    titleLines: ["NASA", "SPACE APPS", "CHALLENGE"],
+    tagline: "Open NASA data. Global minds. Solving planetary challenges from orbit to Earth.",
+    href: "/events/nasa-space-apps",
+    year: "2026",
+    imgMain: "/images/flagships/nasa-space-apps/01.jpg",
+    imgMainAlt: "NASA Space Apps — mission control",
+    imgSecondary: "/images/flagships/nasa-space-apps/02.jpg",
+    imgSecondaryAlt: "NASA Space Apps — star map",
+    accent: "#06b6d4",
+    clipStart: "polygon(0% 0%, 60% 0%, 90% 100%, 0% 100%)",
+    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+    imageEntry: "left",
+  },
+  {
+    id: "turbodrift",
+    num: "03",
+    total: "04",
+    category: "AUTOMOTIVE / SPEED / TELEMETRY",
+    titleLines: ["TURBO", "DRIFT"],
+    tagline: "Chassis. Cornering. Smoke. RC drift engineering pushed to its mechanical limit.",
+    href: "/events/turbodrift",
+    year: "2026",
+    imgMain: "/images/flagships/turbodrift/01.jpg",
+    imgMainAlt: "TurboDrif - drift car in action",
+    imgSecondary: "/images/flagships/turbodrift/02.jpg",
+    imgSecondaryAlt: "TurboDrift — spinning wheel close-up",
+    accent: "#f97316",
+    clipStart: "polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%)",
+    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+    imageEntry: "right",
+  },
+  {
+    id: "quadcopter",
+    num: "04",
+    total: "04",
+    category: "AERODYNAMICS / AUTONOMY / PRECISION",
+    titleLines: ["QUAD", "COPTER", "CHAMP"],
+    tagline: "Autonomous flight. Precision gates. Engineering gravity-defying precision at speed.",
+    href: "/events/quadcopter",
+    year: "2026",
+    imgMain: "/images/flagships/quadcopter/01.jpg",
+    imgMainAlt: "Quadcopter Championship — drone arena",
+    imgSecondary: "/images/flagships/quadcopter/02.jpg",
+    imgSecondaryAlt: "Quadcopter — frame assembly",
+    accent: "#a3e635",
+    clipStart: "polygon(0% 0%, 70% 0%, 100% 100%, 0% 100%)",
+    clipEnd:   "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+    imageEntry: "left",
+  },
+];
+
+// Event Nav
+function EventNavigation({ events, activeIdx, visible }: { events: FlagshipDef[]; activeIdx: number; visible: boolean }) {
+  return (
+    <nav
+      className="fixed right-8 top-1/2 -translate-y-1/2 z-[60] hidden xl:flex flex-col gap-4 transition-opacity duration-500"
+      style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? "auto" : "none" }}
+      aria-label="Event navigation"
+    >
+      {events.map((e, i) => (
+        <div key={e.id} className="flex items-center gap-3">
+          <span
+            className="font-mono text-[9px] tracking-widest transition-all duration-300"
+            style={{ color: i === activeIdx ? e.accent : "rgba(255,255,255,0.25)" }}
+          >
+            {e.num}
+          </span>
+          <div
+            className="rounded-full transition-all duration-500"
+            style={{
+              width: i === activeIdx ? "20px" : "4px",
+              height: "2px",
+              background: i === activeIdx ? e.accent : "rgba(255,255,255,0.2)",
+            }}
+          />
+        </div>
+      ))}
+    </nav>
+  );
+}
 
 export function FlagshipSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // References for typography containers for each event
-  const infoRefs = useRef<(HTMLDivElement | null)[]>([]);
-  // References for image group containers for each event
-  const imageGroupRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const containerRef   = useRef<HTMLDivElement>(null);
+  const stageRef       = useRef<HTMLDivElement>(null);
+  const introRef       = useRef<HTMLDivElement>(null);
+  const introTitleRef  = useRef<HTMLDivElement>(null);
+  const introSubRef    = useRef<HTMLDivElement>(null);
+  const slideRefs      = useRef<(HTMLDivElement | null)[]>([]);
+  const imgMainRefs    = useRef<(HTMLDivElement | null)[]>([]);
+  const imgSecRefs     = useRef<(HTMLDivElement | null)[]>([]);
+  const titleRefs      = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeIdx, setActiveIdx]   = useState(-1);
+  const [navVisible, setNavVisible] = useState(false);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-
-    const isMobile = window.innerWidth < 768;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (isMobile || prefersReducedMotion) {
-      return;
-    }
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
 
     const ctx = gsap.context(() => {
-      const totalEvents = FLAGSHIP_EVENTS.length; // 4
+      // Initial states
+      EVENTS.forEach((ev, i) => {
+        gsap.set(slideRefs.current[i],   { opacity: 0, pointerEvents: "none" });
+        gsap.set(imgMainRefs.current[i], { clipPath: ev.clipStart, x: ev.imageEntry === "right" ? 80 : -80 });
+        gsap.set(imgSecRefs.current[i],  { opacity: 0, y: 60 });
+        gsap.set(titleRefs.current[i],   { opacity: 0, x: ev.imageEntry === "right" ? -60 : 60 });
+      });
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.8,
+          scrub: 1.2,
           pin: stageRef.current,
           anticipatePin: 1,
           onUpdate: (self) => {
-            // Compute active index for progress display
-            const progress = self.progress;
-            const newIndex = Math.min(
-              Math.floor(progress * totalEvents),
-              totalEvents - 1
-            );
-            setActiveIndex(newIndex);
+            const p = self.progress;
+            if (p < 0.22) {
+              setActiveIdx(-1);
+              setNavVisible(false);
+            } else {
+              setNavVisible(true);
+              const eP = (p - 0.22) / 0.78;
+              setActiveIdx(Math.min(Math.floor(eP * 4), 3));
+            }
           },
         },
       });
 
-      // Initial state: Set Event 0 as fully visible, others hidden
-      FLAGSHIP_EVENTS.forEach((_, i) => {
-        if (i === 0) {
-          gsap.set(infoRefs.current[i], { opacity: 1, y: 0, pointerEvents: "auto" });
-          gsap.set(imageGroupRefs.current[i], { opacity: 1, pointerEvents: "auto" });
-        } else {
-          gsap.set(infoRefs.current[i], { opacity: 0, y: 40, pointerEvents: "none" });
-          gsap.set(imageGroupRefs.current[i], { opacity: 0, pointerEvents: "none" });
+      // INTRO hold + exit
+      tl.to({}, { duration: 0.6 })
+        .to(introTitleRef.current, { y: "-120%", opacity: 0, duration: 0.9, ease: "power3.in" }, "+=0.15")
+        .to(introSubRef.current,   { opacity: 0, y: -20,  duration: 0.5, ease: "power2.in" }, "<+=0.1")
+        .to(introRef.current,      { opacity: 0, duration: 0.3, pointerEvents: "none" }, "<+=0.5");
+
+      function enterEvent(i: number, at: string) {
+        const ev = EVENTS[i];
+        const fromLeft = ev.imageEntry === "left";
+        tl.to(slideRefs.current[i],   { opacity: 1, pointerEvents: "auto", duration: 0.01 }, at);
+        tl.fromTo(imgMainRefs.current[i],
+          { clipPath: ev.clipStart, x: fromLeft ? -80 : 80 },
+          { clipPath: ev.clipEnd,   x: 0, duration: 1.1, ease: "power3.out" }, at);
+        tl.to(imgSecRefs.current[i],  { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, `${at}+=0.4`);
+        tl.to(titleRefs.current[i],   { opacity: 1, x: 0, duration: 0.9, ease: "power3.out" }, `${at}+=0.3`);
+        const lines = titleRefs.current[i]?.querySelectorAll(".fs-tline span");
+        if (lines?.length) {
+          tl.fromTo(lines, { y: "110%", opacity: 0 }, { y: "0%", opacity: 1, stagger: 0.1, duration: 0.65, ease: "power3.out" }, `${at}+=0.4`);
         }
-      });
+        const tagEl = titleRefs.current[i]?.querySelector(".fs-tag");
+        if (tagEl) tl.fromTo(tagEl, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, `${at}+=0.7`);
+        const ctaEl = titleRefs.current[i]?.querySelector(".fs-cta");
+        if (ctaEl) tl.fromTo(ctaEl, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, `${at}+=0.85`);
+      }
 
-      // Sequence between events:
-      // Event 0 -> Event 1 (Horizontal movement drift)
-      // Duration per event segment = 3s
-      // Event 0 Hold
-      tl.to({}, { duration: 1 })
-        // Transition 0 -> 1
-        .to(
-          infoRefs.current[0],
-          { opacity: 0, y: -30, duration: 1, ease: "power2.in" },
-          "+=0.2"
-        )
-        // Move images out horizontally
-        .to(
-          imageGroupRefs.current[0],
-          { opacity: 0, x: -60, duration: 1.2, ease: "power2.inOut" },
-          "<"
-        )
-        // Enter Event 1 info
-        .fromTo(
-          infoRefs.current[1],
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 1, ease: "power2.out", pointerEvents: "auto" },
-          "-=0.2"
-        )
-        // Enter Event 1 images from right
-        .fromTo(
-          imageGroupRefs.current[1],
-          { opacity: 0, x: 80 },
-          { opacity: 1, x: 0, duration: 1.2, ease: "power2.out", pointerEvents: "auto" },
-          "<"
-        )
+      function exitEvent(i: number, at: string) {
+        const fromLeft = EVENTS[i].imageEntry === "left";
+        tl.to(imgMainRefs.current[i],  { x: fromLeft ? -110 : 110, opacity: 0.2, duration: 0.8, ease: "power3.in" }, at);
+        tl.to(imgSecRefs.current[i],   { opacity: 0, y: -35, duration: 0.55, ease: "power2.in" }, at);
+        tl.to(titleRefs.current[i],    { opacity: 0, x: fromLeft ? 70 : -70, duration: 0.65, ease: "power3.in" }, at);
+        tl.to(slideRefs.current[i],    { opacity: 0, pointerEvents: "none", duration: 0.2 }, `${at}+=0.8`);
+      }
 
-        // Event 1 Hold
-        .to({}, { duration: 1 })
-
-        // Transition 1 -> 2 (Vertical / elevation depth movement)
-        .to(
-          infoRefs.current[1],
-          { opacity: 0, y: -30, duration: 1, ease: "power2.in" },
-          "+=0.2"
-        )
-        .to(
-          imageGroupRefs.current[1],
-          { opacity: 0, y: -70, scale: 0.94, duration: 1.2, ease: "power2.inOut" },
-          "<"
-        )
-        // Enter Event 2 info
-        .fromTo(
-          infoRefs.current[2],
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 1, ease: "power2.out", pointerEvents: "auto" },
-          "-=0.2"
-        )
-        // Enter Event 2 images ascending from below
-        .fromTo(
-          imageGroupRefs.current[2],
-          { opacity: 0, y: 70, scale: 1.05 },
-          { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "power2.out", pointerEvents: "auto" },
-          "<"
-        )
-
-        // Event 2 Hold
-        .to({}, { duration: 1 })
-
-        // Transition 2 -> 3 (Scale & compositional movement)
-        .to(
-          infoRefs.current[2],
-          { opacity: 0, y: -30, duration: 1, ease: "power2.in" },
-          "+=0.2"
-        )
-        .to(
-          imageGroupRefs.current[2],
-          { opacity: 0, scale: 0.9, duration: 1.2, ease: "power2.inOut" },
-          "<"
-        )
-        // Enter Event 3 info
-        .fromTo(
-          infoRefs.current[3],
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 1, ease: "power2.out", pointerEvents: "auto" },
-          "-=0.2"
-        )
-        // Enter Event 3 images expanding
-        .fromTo(
-          imageGroupRefs.current[3],
-          { opacity: 0, scale: 1.08 },
-          { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out", pointerEvents: "auto" },
-          "<"
-        )
-
-        // Event 3 Hold
-        .to({}, { duration: 1 });
+      enterEvent(0, "+=0.0");
+      tl.to({}, { duration: 0.9 });
+      exitEvent(0, "+=0.1"); enterEvent(1, "<+=0.2");
+      tl.to({}, { duration: 0.9 });
+      exitEvent(1, "+=0.1"); enterEvent(2, "<+=0.2");
+      tl.to({}, { duration: 0.9 });
+      exitEvent(2, "+=0.1"); enterEvent(3, "<+=0.2");
+      tl.to({}, { duration: 0.9 });
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
+  const GRAIN = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
+
   return (
-    <section
-      ref={containerRef}
-      className="relative w-full md:h-[480vh] bg-[#07090e] text-white"
-      aria-label="Flagship Events Experience"
-    >
-      {/* DESKTOP / TABLET PINNED CINEMATIC VIEWPORT */}
-      <div
-        ref={stageRef}
-        className="hidden md:block sticky top-0 h-screen w-full overflow-hidden px-8 lg:px-16"
+    <>
+      <EventNavigation events={EVENTS} activeIdx={activeIdx} visible={navVisible} />
+
+      <section
+        ref={containerRef}
+        className="relative w-full bg-[#07090e] text-white"
+        style={{ height: "620vh" }}
+        aria-label="Flagship Events Cinematic Experience"
       >
-        {/* Subtle Section Ambience */}
+        {/* PINNED STAGE */}
         <div
-          className="glow-atmosphere w-[500px] h-[500px] bg-blue-950/20 top-1/4 right-1/4"
-          aria-hidden="true"
-        />
+          ref={stageRef}
+          className="sticky top-0 w-full overflow-hidden"
+          style={{ height: "100svh", background: "#07090e" }}
+        >
 
-        {/* Global Flagship Header Bar */}
-        <div className="absolute top-24 left-8 lg:left-16 right-8 lg:right-16 flex items-center justify-between border-b border-white/[0.08] pb-4 z-20">
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-blue-400">
-              FLAGSHIP EVENTS
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500/80" />
-            <span className="font-mono text-[11px] tracking-widest text-neutral-400">
-              2026 CALENDAR
-            </span>
-          </div>
-
-          {/* Minimalist Progress Indicator: 01 / 04 */}
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs tracking-widest text-white font-medium">
-              0{activeIndex + 1}
-            </span>
-            <div className="w-16 h-[1px] bg-white/20 relative overflow-hidden">
-              <div
-                className="h-full bg-blue-400 transition-all duration-300"
-                style={{ width: `${((activeIndex + 1) / FLAGSHIP_EVENTS.length) * 100}%` }}
-              />
-            </div>
-            <span className="font-mono text-xs tracking-widest text-neutral-400">
-              0{FLAGSHIP_EVENTS.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Main 40/60 Viewport Composition */}
-        <div className="relative w-full h-full pt-36 pb-12 flex items-center">
-          {/* LEFT 40%: Typography & Event Details (Stacked absolutely per event) */}
-          <div className="relative w-full md:w-[42%] lg:w-[38%] h-[480px] z-20 pointer-events-none">
-            {FLAGSHIP_EVENTS.map((event, idx) => (
-              <div
-                key={event.id}
-                ref={(el) => {
-                  infoRefs.current[idx] = el;
-                }}
-                className={clsx(
-                  "absolute inset-0 flex flex-col justify-center will-change-transform",
-                  idx === 0 ? "opacity-100 pointer-events-auto" : "opacity-0"
-                )}
-              >
-                {/* Event Number & Category */}
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="font-mono text-xs font-semibold tracking-widest text-blue-400">
-                    {event.number}
-                  </span>
-                  <span className="w-4 h-[1px] bg-white/20" />
-                  <span className="font-mono text-[11px] tracking-[0.2em] text-neutral-400 uppercase">
-                    {event.category}
-                  </span>
-                </div>
-
-                {/* Event Title */}
-                <h2 className="font-sans text-4xl lg:text-6xl xl:text-7xl font-light tracking-tight text-white uppercase leading-[0.95] mb-6">
-                  {event.title}
-                </h2>
-
-                {/* Editorial Description */}
-                <p className="font-sans text-sm lg:text-base text-neutral-400 leading-relaxed font-light mb-8 max-w-lg">
-                  {event.description}
-                </p>
-
-                {/* Minimal Editorial CTA */}
-                <div className="pointer-events-auto">
-                  <Button href={event.href} variant="editorial">
-                    EXPLORE EVENT
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* RIGHT 60%: Art-directed Landscape Photography Composition */}
-          <div className="relative w-full md:w-[58%] lg:w-[62%] h-[560px] ml-auto overflow-visible pointer-events-none">
-            {FLAGSHIP_EVENTS.map((event, eventIdx) => (
-              <div
-                key={`gallery-${event.id}`}
-                ref={(el) => {
-                  imageGroupRefs.current[eventIdx] = el;
-                }}
-                className={clsx(
-                  "absolute inset-0 will-change-transform",
-                  eventIdx === 0 ? "opacity-100" : "opacity-0"
-                )}
-              >
-                {event.images.map((img, imgIdx) => (
-                  <div
-                    key={img.src}
-                    style={{
-                      left: `${img.layout.x}%`,
-                      top: `${img.layout.y}%`,
-                      width: `${img.layout.width}%`,
-                      zIndex: img.layout.zIndex || 1,
-                      transform: `rotate(${img.layout.rotation || 0}deg)`,
-                    }}
-                    className="absolute aspect-[16/9] rounded-sm overflow-hidden border border-white/[0.12] bg-[#0d111b] shadow-2xl shadow-black/80 transition-transform duration-500 hover:scale-[1.02] pointer-events-auto"
-                  >
-                    <Image
-                      src={img.src}
-                      alt={img.alt}
-                      fill
-                      sizes="(max-width: 1200px) 50vw, 35vw"
-                      className="object-cover"
-                      priority={eventIdx === 0}
-                    />
-                    {/* Viewfinder corner label */}
-                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded-[2px] border border-white/10 font-mono text-[9px] tracking-widest text-neutral-300 uppercase">
-                      {img.caption || `PLATE 0${imgIdx + 1}`}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* MOBILE ADAPTATION (< md): Clean vertical editorial layout */}
-      <div className="md:hidden px-6 py-20 space-y-24">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-          <span className="font-mono text-xs tracking-[0.25em] text-blue-400 uppercase">
-            FLAGSHIP EVENTS
-          </span>
-          <span className="font-mono text-xs tracking-widest text-neutral-400">
-            04 TOTAL
-          </span>
-        </div>
-
-        {FLAGSHIP_EVENTS.map((event) => (
-          <article
-            key={`mobile-${event.id}`}
-            className="flex flex-col space-y-6 pt-4 border-t border-white/[0.06]"
+          {/* ── INTRO LAYER ── */}
+          <div
+            ref={introRef}
+            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
+            style={{ zIndex: 20 }}
           >
-            {/* Meta & Title */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-semibold text-blue-400">
-                  {event.number}
-                </span>
-                <span className="w-3 h-[1px] bg-white/20" />
-                <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
-                  {event.category}
-                </span>
-              </div>
-              <h2 className="font-sans text-3xl font-light tracking-tight text-white uppercase">
-                {event.title}
-              </h2>
-            </div>
+            {/* Vertical line above */}
+            <div style={{ width: 1, height: 80, background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.25))", marginBottom: 36 }} />
 
-            {/* Primary Landscape Photograph */}
-            <div className="relative aspect-[16/9] w-full rounded-sm overflow-hidden border border-white/10 bg-[#0d111b]">
-              <Image
-                src={event.images[0].src}
-                alt={event.images[0].alt}
-                fill
-                sizes="100vw"
-                className="object-cover"
-              />
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md font-mono text-[9px] tracking-widest text-neutral-300">
-                {event.images[0].caption}
+            <div ref={introTitleRef} className="text-center overflow-hidden">
+              <div
+                className="uppercase font-black leading-[0.88] text-white"
+                style={{
+                  fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
+                  fontSize: "clamp(5rem, 13vw, 15rem)",
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                FLAGSHIP
+              </div>
+              <div
+                className="uppercase font-black leading-[0.88]"
+                style={{
+                  fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
+                  fontSize: "clamp(5rem, 13vw, 15rem)",
+                  letterSpacing: "-0.04em",
+                  WebkitTextStroke: "1.5px rgba(255,255,255,0.22)",
+                  color: "transparent",
+                }}
+              >
+                EVENTS
               </div>
             </div>
 
-            {/* Description */}
-            <p className="font-sans text-sm text-neutral-400 leading-relaxed font-light">
-              {event.description}
-            </p>
+            
+          </div>
 
-            {/* Secondary Thumbnails */}
-            <div className="grid grid-cols-2 gap-3">
-              {event.images.slice(1).map((subImg) => (
+          {/* ── EVENT SLIDES ── */}
+          {EVENTS.map((ev, idx) => {
+            const fromLeft = ev.imageEntry === "left";
+            return (
+              <div
+                key={ev.id}
+                ref={(el) => { slideRefs.current[idx] = el; }}
+                className="absolute inset-0 overflow-hidden"
+                style={{ opacity: 0, pointerEvents: "none", willChange: "opacity" }}
+              >
+                {/* Event tint */}
+                <div className="absolute inset-0 pointer-events-none" aria-hidden
+                  style={{
+                    background: fromLeft
+                      ? `radial-gradient(ellipse 60% 90% at 12% 50%, ${ev.accent}10 0%, transparent 70%)`
+                      : `radial-gradient(ellipse 60% 90% at 88% 50%, ${ev.accent}10 0%, transparent 70%)`,
+                  }}
+                />
+
+                {/* MAIN IMAGE */}
                 <div
-                  key={subImg.src}
-                  className="relative aspect-[16/9] w-full rounded-sm overflow-hidden border border-white/[0.08] bg-[#0d111b]"
+                  ref={(el) => { imgMainRefs.current[idx] = el; }}
+                  className="absolute overflow-hidden"
+                  style={{
+                    top: "6%", height: "86%", width: "60%",
+                    right: fromLeft ? "auto" : "-1%",
+                    left: fromLeft ? "-1%" : "auto",
+                    clipPath: ev.clipStart,
+                    willChange: "clip-path, transform",
+                  }}
                 >
                   <Image
-                    src={subImg.src}
-                    alt={subImg.alt}
-                    fill
-                    sizes="50vw"
+                    src={ev.imgMain}
+                    alt={ev.imgMainAlt}
+                    fill priority={idx === 0}
+                    sizes="62vw"
                     className="object-cover"
+                    style={{ filter: "contrast(1.08) saturate(0.82)", transform: "scale(1.06)", willChange: "transform" }}
                   />
+                  {/* Inner shadow fades image toward text side */}
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: fromLeft
+                      ? "linear-gradient(to right, transparent 55%, rgba(7,9,14,0.9) 100%)"
+                      : "linear-gradient(to left, transparent 55%, rgba(7,9,14,0.9) 100%)",
+                  }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: "linear-gradient(to top, rgba(7,9,14,0.45) 0%, transparent 45%)",
+                  }} />
+                  {/* Film grain on image */}
+                  <div className="absolute inset-0 pointer-events-none mix-blend-overlay"
+                    style={{ opacity: 0.12, backgroundImage: GRAIN, backgroundSize: "180px 180px" }} />
+                  {/* Caption */}
+                  <div
+                    className="absolute bottom-3 font-mono text-[9px] tracking-[0.28em] text-white/35 uppercase"
+                    style={{ [fromLeft ? "right" : "left"]: 12 }}
+                  >
+                    {ev.num} / {ev.total} — C&C {ev.year}
+                  </div>
                 </div>
-              ))}
-            </div>
 
-            {/* CTA */}
-            <div className="pt-2">
-              <Button href={event.href} variant="editorial" size="sm">
-                EXPLORE EVENT
-              </Button>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
+                {/* SECONDARY IMAGE */}
+                <div
+                  ref={(el) => { imgSecRefs.current[idx] = el; }}
+                  className="absolute hidden lg:block overflow-hidden"
+                  style={{
+                    bottom: "7%", width: "21%", aspectRatio: "3/4",
+                    right: fromLeft ? "-2%" : "auto",
+                    left: fromLeft ? "auto" : "-2%",
+                    willChange: "transform, opacity",
+                    boxShadow: "0 20px 56px rgba(0,0,0,0.75)",
+                  }}
+                >
+                  <Image
+                    src={ev.imgSecondary}
+                    alt={ev.imgSecondaryAlt}
+                    fill sizes="22vw"
+                    className="object-cover"
+                    style={{ filter: "contrast(1.1) saturate(0.7)" }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(to top, rgba(7,9,14,0.55) 0%, transparent 60%)" }} />
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ border: `1px solid ${ev.accent}28` }} />
+                </div>
+
+                {/* TYPOGRAPHY */}
+                <div
+                  ref={(el) => { titleRefs.current[idx] = el; }}
+                  className="absolute"
+                  style={{
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    left: fromLeft ? "auto" : "4%",
+                    right: fromLeft ? "4%" : "auto",
+                    width: "42%",
+                    willChange: "transform, opacity",
+                    zIndex: 10,
+                  }}
+                >
+                  {/* Number + category */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="font-mono text-xs tracking-[0.28em] font-semibold" style={{ color: ev.accent }}>
+                      {ev.num}
+                    </span>
+                    <span className="block h-px w-8" style={{ background: `${ev.accent}55` }} />
+                    <span className="font-mono text-[10px] tracking-[0.2em] text-white/38 uppercase">
+                      {ev.category.split("/")[0].trim()}
+                    </span>
+                  </div>
+
+                  {/* Big title */}
+                  <h2
+                    className="uppercase font-black text-white leading-[0.88]"
+                    style={{
+                      fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
+                      fontSize: "clamp(3.5rem, 7vw, 9rem)",
+                      letterSpacing: "-0.025em",
+                      textShadow: "0 2px 40px rgba(0,0,0,0.85)",
+                    }}
+                  >
+                    {ev.titleLines.map((line, li) => (
+                      <span key={li} className="fs-tline block overflow-hidden">
+                        <span className="block" style={{ paddingLeft: li % 2 === 1 ? "0.1em" : "0" }}>
+                          {line}
+                        </span>
+                      </span>
+                    ))}
+                  </h2>
+
+                  {/* Tagline */}
+                  <p className="fs-tag font-light text-white/45 mt-5 leading-relaxed"
+                    style={{
+                      fontFamily: "var(--font-geist-sans), sans-serif",
+                      fontSize: "clamp(0.72rem, 0.95vw, 0.88rem)",
+                      maxWidth: "33ch",
+                      willChange: "transform, opacity",
+                    }}
+                  >
+                    {ev.tagline}
+                  </p>
+
+                  {/* CTA */}
+                  <div className="fs-cta mt-7" style={{ willChange: "transform, opacity" }}>
+                    <Link
+                      href={ev.href}
+                      className="group inline-flex items-center gap-3 font-mono text-xs tracking-[0.28em] uppercase text-white/70 hover:text-white transition-colors duration-300"
+                    >
+                      <span className="relative">
+                        EXPLORE EVENT
+                        <span className="absolute -bottom-0.5 left-0 h-px w-0 group-hover:w-full transition-all duration-500"
+                          style={{ background: ev.accent }} />
+                      </span>
+                      <span className="transition-transform duration-500 group-hover:translate-x-2"
+                        style={{ color: ev.accent }}>
+                        →
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Thin vertical divider */}
+                <div
+                  className="absolute top-[12%] hidden xl:block pointer-events-none"
+                  style={{
+                    height: "76%", width: 1,
+                    left: fromLeft ? "60%" : "40%",
+                    background: `linear-gradient(to bottom, transparent, ${ev.accent}20 30%, ${ev.accent}20 70%, transparent)`,
+                  }}
+                  aria-hidden
+                />
+              </div>
+            );
+          })}
+
+          {/* Bottom progress indicator */}
+          <div
+            className="absolute bottom-7 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 transition-opacity duration-500"
+            style={{ opacity: navVisible ? 1 : 0 }}
+          >
+            {EVENTS.map((e, i) => (
+              <div
+                key={e.id}
+                style={{
+                  height: 2,
+                  width: i === activeIdx ? 28 : 5,
+                  background: i === activeIdx ? e.accent : i < activeIdx ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.12)",
+                  borderRadius: 99,
+                  transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ── MOBILE ── */}
+        <div className="md:hidden px-5 pb-20" style={{ background: "#07090e" }}>
+          <div className="py-16 text-center border-b border-white/[0.06]">
+            <h2 className="uppercase font-black leading-none text-white"
+              style={{ fontFamily: "'Arial Black', Impact, sans-serif", fontSize: "clamp(3.2rem, 18vw, 5.5rem)", letterSpacing: "-0.03em" }}>
+              FLAGSHIP
+            </h2>
+            <h2 className="uppercase font-black leading-none"
+              style={{
+                fontFamily: "'Arial Black', Impact, sans-serif",
+                fontSize: "clamp(3.2rem, 18vw, 5.5rem)",
+                letterSpacing: "-0.03em",
+                WebkitTextStroke: "1px rgba(255,255,255,0.28)",
+                color: "transparent",
+              }}>
+              EVENTS
+            </h2>
+            <p className="font-mono text-[9px] tracking-[0.35em] text-white/28 uppercase mt-4">04 CHAPTERS / 2026</p>
+          </div>
+          {EVENTS.map((ev) => (
+            <article key={`m-${ev.id}`} className="py-12 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="font-mono text-xs tracking-[0.25em] font-medium" style={{ color: ev.accent }}>{ev.num}</span>
+                <span className="block h-px w-6" style={{ background: `${ev.accent}50` }} />
+                <span className="font-mono text-[10px] tracking-wider text-white/38 uppercase">
+                  {ev.category.split("/")[0].trim()}
+                </span>
+              </div>
+              <h3 className="uppercase font-black text-white leading-[0.9] mb-5"
+                style={{ fontFamily: "'Arial Black', Impact, sans-serif", fontSize: "clamp(2.8rem, 14vw, 4.5rem)", letterSpacing: "-0.02em" }}>
+                {ev.titleLines.map((l, i) => <span key={i} className="block">{l}</span>)}
+              </h3>
+              <div className="relative w-full overflow-hidden mb-5" style={{ aspectRatio: "16/10", clipPath: ev.clipEnd }}>
+                <Image src={ev.imgMain} alt={ev.imgMainAlt} fill sizes="100vw" className="object-cover"
+                  style={{ filter: "contrast(1.08) saturate(0.82)" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,9,14,0.5) 0%, transparent 50%)" }} />
+              </div>
+              <p className="text-sm text-white/45 leading-relaxed font-light mb-6">{ev.tagline}</p>
+              <Link href={ev.href}
+                className="group inline-flex items-center gap-3 font-mono text-xs tracking-[0.28em] uppercase text-white/65 hover:text-white transition-colors duration-300">
+                <span className="relative">EXPLORE EVENT
+                  <span className="absolute -bottom-0.5 left-0 h-px w-0 group-hover:w-full transition-all duration-500" style={{ background: ev.accent }} />
+                </span>
+                <span style={{ color: ev.accent }} className="group-hover:translate-x-2 transition-transform duration-500">→</span>
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
