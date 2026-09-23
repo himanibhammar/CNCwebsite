@@ -26,9 +26,8 @@ const PANEL_SCROLL_VH = 115;
  * as one continuous move through a single space rather than a stack of
  * unrelated sections.
  *
- * The handoff from the hero is explicit: the hero's exit collapses its key
- * light into a horizon line at the bottom of the frame, and this section opens
- * from that same line, carrying a thinned out version of the hero's far debris
+ * The handoff is direct: this section rises straight up out of the OUR
+ * FLAGSHIPS gallery, carrying a thinned out version of the hero's far debris
  * field with it so the space is recognisably the same space.
  */
 export function FlagshipSection() {
@@ -36,7 +35,6 @@ export function FlagshipSection() {
   const stageRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
   const carryoverRef = useRef<HTMLDivElement>(null);
-  const horizonRef = useRef<HTMLDivElement>(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isReady, setIsReady] = useState(false);
@@ -68,7 +66,7 @@ export function FlagshipSection() {
 
         if (reduced) {
           panels.forEach(settlePanel);
-          gsap.set([carryoverRef.current, horizonRef.current], { opacity: 0 });
+          gsap.set(carryoverRef.current, { opacity: 0 });
           return;
         }
 
@@ -111,12 +109,6 @@ export function FlagshipSection() {
           },
           defaults: { ease: "none" },
         })
-          .fromTo(
-            horizonRef.current,
-            { opacity: 1, scaleX: 1 },
-            { opacity: 0, scaleX: 1.6, duration: 1 },
-            0
-          )
           .to(camera, { scale: 1, duration: 1 }, 0)
           .fromTo(
             carryoverRef.current,
@@ -197,21 +189,6 @@ export function FlagshipSection() {
             ScrollTrigger owns the transform on the pinned stage itself. */}
         <div ref={cameraRef} className="absolute inset-0">
         {/* ---- continuity with the hero ------------------------------- */}
-        <div
-          ref={horizonRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-[5]"
-        >
-          <div className="stage-horizon mx-auto h-[1px] w-[70%]" />
-          <div
-            className="h-[26vh] w-full"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(96,140,210,0.18) 0%, transparent 100%)",
-            }}
-          />
-        </div>
-
         <div
           ref={carryoverRef}
           aria-hidden="true"

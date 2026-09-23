@@ -5,6 +5,13 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+declare global {
+  interface Window {
+    /** The page's Lenis instance, for sections that scroll programmatically. */
+    __lenis?: Lenis;
+  }
+}
+
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -27,6 +34,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       touchMultiplier: 1.5,
     });
 
+    window.__lenis = lenis;
+
     // Sync Lenis scroll with GSAP ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -40,6 +49,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     return () => {
       gsap.ticker.remove(tickerCallback);
       lenis.destroy();
+      if (window.__lenis === lenis) window.__lenis = undefined;
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);

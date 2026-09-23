@@ -79,7 +79,8 @@ export function buildPanelTimeline(
     )
     .fromTo(
       q("[data-fs-line]"),
-      { yPercent: 116 },
+      // Clears the mask's padding, so no sliver of cap shows before the rise
+      { yPercent: 150 },
       { yPercent: 0, duration: 1, stagger: 0.085, ease: "expo.out" },
       0.24
     )
