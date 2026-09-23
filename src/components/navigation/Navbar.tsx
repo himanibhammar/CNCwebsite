@@ -81,6 +81,25 @@ export function Navbar() {
             Events
           </button>
 
+          {/* GALLERY — page route */}
+          <Link
+            href="/gallery"
+            className={clsx(
+              "relative px-5 py-1.5 text-[11px] font-mono tracking-[0.22em] uppercase rounded-full transition-all duration-300",
+              pathname === "/gallery"
+                ? "text-white bg-white/[0.09] font-semibold"
+                : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
+            )}
+          >
+            Gallery
+            {pathname === "/gallery" && (
+              <span
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-400"
+                aria-hidden="true"
+              />
+            )}
+          </Link>
+
           {/* Mobile hamburger */}
           <button
             type="button"
@@ -129,6 +148,20 @@ export function Navbar() {
               >
                 Events
               </button>
+            </div>
+
+            {/* Gallery */}
+            <div className="border-b border-white/[0.06] pb-5">
+              <Link
+                href="/gallery"
+                onClick={() => setIsOpen(false)}
+                className={clsx(
+                  "block font-sans text-4xl font-light tracking-tight transition-colors",
+                  pathname === "/gallery" ? "text-white" : "text-neutral-400 hover:text-white"
+                )}
+              >
+                Gallery
+              </Link>
             </div>
           </div>
 
