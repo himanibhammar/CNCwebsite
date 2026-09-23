@@ -2,6 +2,7 @@ import { HeroStage } from "@/components/hero/HeroStage";
 import { OurFlagship } from "@/components/flagship/OurFlagship";
 import { FlagshipSection } from "@/components/flagship/FlagshipSection";
 import { PhotoGallery } from "@/components/ui/gallery";
+import { CinematicFooter } from "@/components/ui/motion-footer";
 
 export default function HomePage() {
   return (
@@ -17,6 +18,9 @@ export default function HomePage() {
 
       {/* 04 / Past events */}
       <PhotoGallery />
+
+      {/* 05 / Footer */}
+      <CinematicFooter />
     </main>
   );
 }

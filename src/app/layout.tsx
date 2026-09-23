@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { Navbar } from "@/components/navigation/Navbar";
-import { Footer } from "@/components/footer/Footer";
 import { GrainOverlay } from "@/components/ui/GrainOverlay";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
 import { BRAND } from "@/lib/brand";
@@ -82,7 +81,6 @@ export default function RootLayout({
           <GrainOverlay />
           <Navbar />
           <div className="flex w-full flex-1 flex-col">{children}</div>
-          <Footer />
         </SmoothScroll>
       </body>
     </html>
