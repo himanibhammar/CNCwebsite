@@ -59,7 +59,7 @@ export function FlagshipPanel({ event, position, total }: FlagshipPanelProps) {
               <span
                 key={line}
                 aria-hidden="true"
-                className="block overflow-hidden pb-[0.06em]"
+                className="fs-title-mask block overflow-hidden"
               >
                 <span
                   data-fs-line

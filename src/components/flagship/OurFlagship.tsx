@@ -9,7 +9,7 @@ import { OUR_FLAGSHIP_GALLERY } from "./our-flagship-gallery";
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-const TITLE = "OUR FLAGSHIP";
+const TITLE = "OUR FLAGSHIPS";
 
 /** Total scroll height pinned to this section (in vh units). */
 const GALLERY_SCROLL_VH = 250;
@@ -101,7 +101,6 @@ export function OurFlagship() {
           pin: stage,
           pinSpacing: false,
           anticipatePin: 1,
-          onEnter: () => reveal.play(),
           onEnterBack: () => reveal.play(),
           onUpdate: (self) => {
             // delta progress → velocity impulse for the 3D gallery
@@ -110,6 +109,15 @@ export function OurFlagship() {
             // Scale delta → velocity: smaller number = slower gallery spin
             scrollVelocityRef.current += delta * 60;
           },
+        });
+
+        // Reveal as the section rises into view, not once it pins: the hero
+        // glides straight here, and a stage that stayed dark until the pin
+        // would read as a black gap between the two.
+        const entrance = ScrollTrigger.create({
+          trigger: section,
+          start: "top 85%",
+          onEnter: () => reveal.play(),
         });
 
         /* ================================================================
@@ -134,6 +142,7 @@ export function OurFlagship() {
 
         return () => {
           pinTrigger.kill();
+          entrance.kill();
           reveal.kill();
           exit.kill();
         };
@@ -241,7 +250,8 @@ export function OurFlagship() {
               className="of-title w-full text-center font-black leading-[0.85] tracking-[-0.04em] will-change-[filter,transform] flex flex-col items-center uppercase"
               style={{
                 fontFamily: "'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif",
-                fontSize: "clamp(5rem, 15vw, 16rem)",
+                // Sized so the nine letters of FLAGSHIPS fit a phone's width
+                fontSize: "clamp(3rem, 13.5vw, 16rem)",
               }}
             >
               <span className="sr-only">{TITLE}</span>
@@ -258,7 +268,7 @@ export function OurFlagship() {
                           data-of-glyph
                           className="inline-block will-change-transform"
                           style={
-                            word === "FLAGSHIP"
+                            word === "FLAGSHIPS"
                               ? {
                                   WebkitTextStroke: "2px rgba(255,255,255,0.4)",
                                   color: "transparent",

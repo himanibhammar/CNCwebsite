@@ -188,10 +188,18 @@ html.lenis body {
   filter: drop-shadow(-0.012em 0 0 rgba(255, 60, 60, 0.09)) drop-shadow(0.012em 0 0 rgba(60, 190, 255, 0.11)) drop-shadow(0 0.05em 0.08em rgba(0, 0, 0, 0.55));
 }
 
+/* Not clipped: on the way to OUR FLAGSHIPS the lines slide right off the
+   screen edge, and the stage itself does the clipping. */
 .hero-line-mask {
   display: block;
-  overflow: hidden;
-  padding-bottom: 0.07em;
+}
+
+/* The display face's caps run taller than its 0.76 line box, so the mask
+   would shave their tops and bottoms. The padding lives on the line itself
+   because only the line carries the fitted font size. */
+.hero-line-mask > .hero-display {
+  padding-top: 0.16em;
+  padding-bottom: 0.1em;
 }
 
 /* The ampersand is the brand's hinge, the point where challenge becomes
@@ -504,6 +512,26 @@ html.lenis body {
 
 @media (min-width: 768px) {
   .fs-title {
+    font-size: clamp(3.6rem, 8.2vw, 11rem);
+  }
+}
+
+/* Anton's caps rise above the 0.82 line box. Two things clip them: the mask
+   (overflow hidden) and the gradient fill, which background-clip: text only
+   paints inside the line's own box. So the padding goes on the line itself,
+   and the mask's negative margins (in title units, since it carries the
+   title's size) hand the space back so the stack sits where it did. */
+.fs-title-mask {
+  font-size: clamp(2.9rem, 12vw, 7.4rem);
+  margin: -0.16em 0 -0.18em;
+}
+
+.fs-title-mask > .fs-title {
+  padding: 0.16em 0 0.18em;
+}
+
+@media (min-width: 768px) {
+  .fs-title-mask {
     font-size: clamp(3.6rem, 8.2vw, 11rem);
   }
 }
