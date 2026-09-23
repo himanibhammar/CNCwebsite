@@ -250,7 +250,7 @@ export function CinematicFooter() {
                 },
                 {
                   name: "Rachit Sharma",
-                  phone: "+91 7878225188",
+                  phone: "+91 78782 25188",
                 },
               ].map(({ name, phone }) => (
                 <p
@@ -322,6 +322,24 @@ export function CinematicFooter() {
               }}
             >
               challenges_hackathon@aaruush.org
+            </a>
+            
+            <a
+              href="mailto:championships@aaruush.org"
+              className="
+                whitespace-nowrap
+                hover:text-blue-300
+                transition-colors
+                mt-2
+              "
+              style={{
+                fontSize: "clamp(1rem, 1.5vw, 1.35rem)",
+                color: "#FFFFFF",
+                fontWeight: 300,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              championships@aaruush.org
             </a>
 
             {/* QUICK NAVIGATION */}
